@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export function Footer() {
   return (
@@ -9,13 +10,14 @@ export function Footer() {
 
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4 item-start">
-            <Link href="/" className="inline-block ">
-              <span className="text-2xl font-extrabold tracking-tight text-white font-sans">
-                O<span className="text-[#B89F81]">G</span>
-              </span>
-              <span className="block text-xs tracking-widest text-stone-400 -mt-1 font-medium">
-                OFFGRID
-              </span>
+            <Link href="/" className="inline-block bg-white p-2 sm:p-2.5 rounded-xl hover:opacity-95 transition-opacity shadow-xs">
+              <Image
+                src="/logo.png"
+                alt="OFFGRID"
+                width={120}
+                height={75}
+                className="h-10 sm:h-11 w-auto object-contain"
+              />
             </Link>
             <p className="text-xs sm:text-sm text-stone-400 leading-relaxed max-w-sm">
               وجهتك الأولى للأزياء العصرية الفاخرة ذات التصميم البسيط والجودة العالية. نحرص على تقديم أفضل الخامات وتجربة تسوق مريحة واستثنائية.

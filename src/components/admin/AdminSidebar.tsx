@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -79,12 +80,16 @@ export function AdminSidebar() {
   return (
     <aside className="fixed top-0 right-0 h-full w-16 md:w-15 lg:w-60 bg-stone-900 text-stone-100 z-50 flex flex-col border-l border-stone-800 transition-all duration-300">
       {/* Brand Header */}
-      <div className="h-16 lg:h-20 flex items-center justify-center px-2 lg:px-6 border-b border-stone-800/80">
-        <Link href="/admin" className="flex items-center gap-3 group">
-          <div className="hidden lg:block min-w-0">
-            <span className="text-xl font-black tracking-wider text-white block">
-              OG Dashboard
-            </span>
+      <div className="h-16 lg:h-20 flex items-center justify-center px-2 lg:px-4 border-b border-stone-800/80">
+        <Link href="/admin" className="flex items-center gap-2.5 group">
+          <div className="bg-white p-1 rounded-lg flex items-center justify-center shadow-xs">
+            <Image
+              src="/logo.png"
+              alt="OFFGRID"
+              width={140}
+              height={70}
+              className="h-12 sm:h-14 w-auto object-contain"
+            />
           </div>
         </Link>
       </div>

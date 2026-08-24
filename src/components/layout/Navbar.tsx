@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
@@ -93,13 +94,15 @@ export function Navbar() {
 
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="flex flex-col items-end group">
-                <span className="text-xl sm:text-4xl font-extrabold tracking-tight text-stone-900 font-sans">
-                  O<span className="text-[#9E866C]">G</span>
-                </span>
-                <span className="text-[12px] tracking-widest text-stone-400 -mt-1 font-bold">
-                  OFFGRID
-                </span>
+              <Link href="/" className="flex items-center group py-1">
+                <Image
+                  src="/logo.png"
+                  alt="OFFGRID"
+                  width={130}
+                  height={80}
+                  className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105"
+                  priority
+                />
               </Link>
             </div>
 
@@ -239,14 +242,15 @@ export function Navbar() {
               <Link
                 href="/"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex flex-col items-start group"
+                className="flex items-center group"
               >
-                <span className="text-xl font-extrabold tracking-tight text-stone-900 font-sans">
-                  O<span className="text-[#9E866C]">G</span>
-                </span>
-                <span className="text-[10px] tracking-widest text-stone-400 -mt-1 font-bold">
-                  OFFGRID
-                </span>
+                <Image
+                  src="/logo.png"
+                  alt="OFFGRID"
+                  width={95}
+                  height={60}
+                  className="h-9 w-auto object-contain"
+                />
               </Link>
               <button
                 onClick={() => setMobileMenuOpen(false)}

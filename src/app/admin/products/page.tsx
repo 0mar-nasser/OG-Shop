@@ -320,7 +320,7 @@ export default function AdminProductsPage() {
                           />
                         </div>
                         <div>
-                          <p className="font-bold text-stone-900 text-sm sm:text-base line-clamp-1 max-w-[220px]">
+                          <p className="font-bold text-stone-900 text-sm sm:text-base line-clamp-1 max-w-auto">
                             {product.name}
                           </p>
                           <p className="text-xs text-stone-400 font-medium mt-0.5">

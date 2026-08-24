@@ -249,6 +249,7 @@ const detailedProductsMatrix = [
 
 export default function AdminAnalyticsPage() {
   const [timeframe, setTimeframe] = useState<Timeframe>('month');
+  const [chartMetric, setChartMetric] = useState<ChartMetric>('revenue');
   const [copiedNotification, setCopiedNotification] = useState(false);
 
   const currentData = analyticsDataByTimeframe[timeframe];
@@ -281,75 +282,6 @@ export default function AdminAnalyticsPage() {
   return (
     <div className="space-y-8 max-w-7xl">
       {/* 1. Analytics Header & Controls */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 sm:p-7 rounded-3xl border border-stone-200 shadow-xs">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-[#9E866C]/10 text-[#9E866C]">
-              <BarChart3 className="w-5 h-5" />
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
-              مركز الإحصائيات والتحليلات المتقدمة
-            </h1>
-          </div>
-          <p className="text-xs sm:text-sm text-stone-500 max-w-2xl">
-            تقارير شاملة لأداء المتجر المالي، سلوك العملاء، قنوات التسويق، وتوزيع المبيعات الجغرافي.
-          </p>
-        </div>
-
-        {/* Action Buttons & Timeframe Switcher */}
-        <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
-          {/* Timeframe selector */}
-          <div className="flex items-center bg-stone-100 p-1.5 rounded-2xl border border-stone-200 text-xs font-bold">
-            {[
-              { id: 'hour', label: 'ساعه' },
-              { id: 'day', label: 'يوم' },
-              { id: 'week', label: 'اسبوع' },
-              { id: 'month', label: 'شهر' },
-              { id: 'year', label: 'سنه' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setTimeframe(tab.id as Timeframe)}
-                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${timeframe === tab.id
-                  ? 'bg-stone-900 text-white shadow-xs'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
-                  }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Export button */}
-          <button
-            onClick={handleExportFullReport}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#9E866C] hover:bg-[#8A745D] text-white rounded-2xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
-          >
-            {copiedNotification ? (
-              <>
-                <Check className="w-4 h-4" />
-                تم التحميل!
-              </>
-            ) : (
-              <>
-                <Download className="w-4 h-4" />
-                تصدير التقرير
-              </>
-            )}
-          </button>
-
-          {/* Print button */}
-          <button
-            onClick={() => window.print()}
-            className="p-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-2xl transition-colors cursor-pointer"
-            title="طباعة التقرير"
-          >
-            <Printer className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* 2. Executive 6-KPI Metric Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {/* Metric 1: Total Revenue */}
         <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs space-y-2">
@@ -440,12 +372,203 @@ export default function AdminAnalyticsPage() {
         </div>
       </div>
 
+
+      {/* 2. Executive 6-KPI Metric Cards Grid */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 sm:p-7 rounded-3xl border border-stone-200 shadow-xs">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="p-2 rounded-xl bg-[#9E866C]/10 text-[#9E866C]">
+              <BarChart3 className="w-5 h-5" />
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
+              مركز الإحصائيات والتحليلات المتقدمة
+            </h1>
+          </div>
+          <p className="text-xs sm:text-sm text-stone-500 max-w-2xl">
+            تقارير شاملة لأداء المتجر المالي، سلوك العملاء، قنوات التسويق، وتوزيع المبيعات الجغرافي.
+          </p>
+        </div>
+
+        {/* Action Buttons & Timeframe Switcher */}
+        <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
+          {/* Timeframe selector */}
+          <div className="flex items-center bg-stone-100 p-1.5 rounded-2xl border border-stone-200 text-xs font-bold">
+            {[
+              { id: 'hour', label: 'ساعه' },
+              { id: 'day', label: 'يوم' },
+              { id: 'week', label: 'اسبوع' },
+              { id: 'month', label: 'شهر' },
+              { id: 'year', label: 'سنه' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setTimeframe(tab.id as Timeframe)}
+                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${timeframe === tab.id
+                  ? 'bg-stone-900 text-white shadow-xs'
+                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
+                  }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Export button */}
+          <button
+            onClick={handleExportFullReport}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#9E866C] hover:bg-[#8A745D] text-white rounded-2xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
+          >
+            {copiedNotification ? (
+              <>
+                <Check className="w-4 h-4" />
+                تم التحميل!
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                تصدير التقرير
+              </>
+            )}
+          </button>
+
+          {/* Print button */}
+          <button
+            onClick={() => window.print()}
+            className="p-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-2xl transition-colors cursor-pointer"
+            title="طباعة التقرير"
+          >
+            <Printer className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
       {/* 3. Main Chart: Interactive Performance Trends */}
-      <AnalyticsPerformanceChart
-        chartData={currentData.chartData}
-        title={currentData.title}
-        timeframe={timeframe}
-      />
+      <div className="bg-white rounded-3xl border border-stone-200 p-6 sm:p-7 shadow-xs space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-[#9E866C]" />
+              <h2 className="text-lg font-black text-stone-900">
+                منحنى ومؤشرات الأداء خلال ({currentData.title})
+              </h2>
+            </div>
+            <p className="text-xs text-stone-400 mt-0.5">
+              تتبع الإيرادات، عدد الطلبات المنجزة، وصافي الأرباح الفعلية
+            </p>
+          </div>
+
+          {/* Metric Selector Tabs */}
+          <div className="flex items-center bg-stone-100 p-1 rounded-2xl text-xs font-bold self-start sm:self-auto">
+            <button
+              onClick={() => setChartMetric('revenue')}
+              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${chartMetric === 'revenue'
+                ? 'bg-stone-900 text-white shadow-xs'
+                : 'text-stone-600 hover:text-stone-900'
+                }`}
+            >
+              الإيرادات (ر.س)
+            </button>
+            <button
+              onClick={() => setChartMetric('profit')}
+              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${chartMetric === 'profit'
+                ? 'bg-[#9E866C] text-white shadow-xs'
+                : 'text-stone-600 hover:text-stone-900'
+                }`}
+            >
+              صافي الربح
+            </button>
+            <button
+              onClick={() => setChartMetric('orders')}
+              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${chartMetric === 'orders'
+                ? 'bg-indigo-900 text-white shadow-xs'
+                : 'text-stone-600 hover:text-stone-900'
+                }`}
+            >
+              عدد الطلبات
+            </button>
+          </div>
+        </div>
+
+        {/* Visual Dynamic Bar Chart */}
+        <div className="h-64 pt-6 flex items-end justify-between gap-3 sm:gap-6 border-b border-stone-100 pb-3">
+          {currentData.chartData.map((item, idx) => {
+            const height =
+              chartMetric === 'revenue'
+                ? item.heightRevenue
+                : chartMetric === 'profit'
+                  ? item.heightProfit
+                  : item.heightOrders;
+
+            const displayValue =
+              chartMetric === 'revenue'
+                ? `${item.revenue.toLocaleString('ar-SA')} ر.س`
+                : chartMetric === 'profit'
+                  ? `${item.profit.toLocaleString('ar-SA')} ر.س`
+                  : `${item.orders} طلب`;
+
+            return (
+              <div key={idx} className="flex-1 flex flex-col items-center gap-2.5 h-full justify-end group relative">
+                {/* Floating Tooltip */}
+                <div className="opacity-0 group-hover:opacity-100 pointer-events-none absolute -top-12 bg-stone-900 text-white text-[11px] font-bold py-1.5 px-3 rounded-xl shadow-xl transition-opacity whitespace-nowrap z-20">
+                  <div className="text-stone-300 text-[10px]">{item.label}</div>
+                  <div className="text-[#D7C4B7]">{displayValue}</div>
+                </div>
+
+                {/* Bar */}
+                <div className="w-full max-w-[56px] bg-stone-100 rounded-t-2xl h-full flex items-end overflow-hidden p-0.5">
+                  <div
+                    style={{ height }}
+                    className={`w-full rounded-t-xl transition-all duration-700 group-hover:opacity-90 ${item.isPeak
+                      ? 'bg-gradient-to-t from-stone-900 to-[#9E866C]'
+                      : chartMetric === 'profit'
+                        ? 'bg-gradient-to-t from-[#9E866C] to-[#D7C4B7]'
+                        : chartMetric === 'orders'
+                          ? 'bg-gradient-to-t from-indigo-700 to-indigo-400'
+                          : 'bg-stone-800'
+                      }`}
+                  />
+                </div>
+                <span className="text-[11px] font-bold text-stone-600 truncate max-w-full text-center">
+                  {item.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Highlights Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+          <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200/80 flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-800 font-bold">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-xs text-stone-400 font-bold">فترة الذروة الشرائية</div>
+              <div className="text-sm font-black text-stone-900">نهاية الأسبوع (الخميس والجمعة)</div>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200/80 flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-[#9E866C]/20 text-[#9E866C] font-bold">
+              <CreditCard className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-xs text-stone-400 font-bold">أعلى وسيلة دفع استخداماً</div>
+              <div className="text-sm font-black text-stone-900">Apple Pay و مدى (82%)</div>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200/80 flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-indigo-100 text-indigo-800 font-bold">
+              <Users className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-xs text-stone-400 font-bold">نسبة تكرار الشراء</div>
+              <div className="text-sm font-black text-stone-900">36% عملاء عائدون (Loyal)</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* 4. Sales by Category & Marketing Channels Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
