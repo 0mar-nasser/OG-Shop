@@ -151,6 +151,10 @@ model Order {
   trackingNumber    String?
   estimatedDelivery String?
   notes             String?
+
+  // Stripe Payment Integration
+  stripeSessionId       String? @unique
+  stripePaymentIntentId String? @unique
   
   items             OrderItem[]
   createdAt         DateTime       @default(now())

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ToastProvider } from '@/context/ToastContext';
+import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import { WishlistProvider } from '@/context/WishlistContext';
 import { ToastContainer } from '@/components/common/ToastContainer';
@@ -29,12 +30,14 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-[#FAF9F6] text-[#1C1917] antialiased selection:bg-[#9E866C]/20 selection:text-stone-900 font-['Cairo',sans-serif]">
         <ToastProvider>
-          <CartProvider>
-            <WishlistProvider>
-              {children}
-              <ToastContainer />
-            </WishlistProvider>
-          </CartProvider>
+          <AuthProvider>
+            <CartProvider>
+              <WishlistProvider>
+                {children}
+                <ToastContainer />
+              </WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
         </ToastProvider>
       </body>
     </html>

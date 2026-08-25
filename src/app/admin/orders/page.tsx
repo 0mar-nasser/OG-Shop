@@ -271,11 +271,10 @@ export default function AdminOrdersPage() {
             <button
               key={tab.id}
               onClick={() => setSelectedStatus(tab.id)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap ${
-                selectedStatus === tab.id
-                  ? 'bg-stone-900 text-white'
-                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-              }`}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap ${selectedStatus === tab.id
+                ? 'bg-stone-900 text-white'
+                : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                }`}
             >
               {tab.label}
             </button>
@@ -365,7 +364,7 @@ export default function AdminOrdersPage() {
       {/* Order Details Modal */}
       {selectedOrder && (
         <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-stone-200">
+          <div className="bg-white max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-stone-200">
             {/* Modal Header */}
             <div className="p-6 border-b border-stone-200 flex items-center justify-between sticky top-0 bg-white z-10">
               <div className="flex items-center gap-3">
@@ -405,11 +404,10 @@ export default function AdminOrdersPage() {
                       <button
                         key={st}
                         onClick={() => handleUpdateStatus(selectedOrder.id, st)}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all ${
-                          selectedOrder.status === st
-                            ? 'bg-stone-900 text-white shadow-sm'
-                            : 'bg-white text-stone-700 border border-stone-200 hover:bg-stone-100'
-                        }`}
+                        className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all ${selectedOrder.status === st
+                          ? 'bg-stone-900 text-white shadow-sm'
+                          : 'bg-white text-stone-700 border border-stone-200 hover:bg-stone-100'
+                          }`}
                       >
                         {statusConfig[st].label.split(' ')[0]}
                       </button>

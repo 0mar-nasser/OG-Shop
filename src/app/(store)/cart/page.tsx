@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
 import {
   ShoppingBagIcon,
   TrashIcon,
@@ -33,16 +34,19 @@ export default function CartPage() {
   } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { showToast } = useToast();
+  const { user } = useAuth();
 
   const [couponCode, setCouponCode] = useState('');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
 
   // Checkout Form State
   const [formData, setFormData] = useState({
-    fullName: 'عمر الأحمد',
-    phone: '0501234567',
+    fullName: user?.name || 'عمر الأحمد',
+    email: user?.email || '',
+    phone: user?.phone || '0501234567',
     city: 'دبي',
     address: 'شارع بوليفارد الشيخ محمد بن راشد، برج الأناقة',
     paymentMethod: 'card'
@@ -65,8 +69,65 @@ export default function CartPage() {
     showToast('تم نقل المنتج إلى قائمة الرغبات', 'success');
   };
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (cart.length === 0) {
+      showToast('سلة التسوق فارغة', 'error');
+      return;
+    }
+
+    if (!formData.fullName.trim() || !formData.phone.trim()) {
+      showToast('يرجى ملء جميع الحقول المطلوبة', 'error');
+      return;
+    }
+
+    // Stripe Card Payment Flow
+    if (formData.paymentMethod === 'card') {
+      try {
+        setIsProcessingPayment(true);
+
+        const payload = {
+          customerName: formData.fullName.trim(),
+          customerEmail: formData.email || user?.email || `${formData.phone}@raqi-store.com`,
+          customerPhone: formData.phone.trim(),
+          city: formData.city.trim(),
+          address: formData.address.trim(),
+          items: cart.map((item) => ({
+            productId: item.product.id,
+            quantity: item.quantity,
+            size: item.selectedSize,
+            color: item.selectedColor.name,
+          })),
+          couponCode: appliedCoupon?.code,
+          userId: user?.id,
+        };
+
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.url) {
+          throw new Error(data.error || 'فشل في إنشاء جلسة الدفع عبر Stripe');
+        }
+
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      } catch (err: any) {
+        console.error('[Checkout Error]', err);
+        showToast(err.message || 'تعذر إتمام الدفع، يرجى المحاولة مرة أخرى', 'error');
+        setIsProcessingPayment(false);
+      }
+      return;
+    }
+
+    // COD Flow
     const fakeOrderNum = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
     setOrderNumber(fakeOrderNum);
     setIsOrderPlaced(true);
@@ -74,9 +135,9 @@ export default function CartPage() {
   };
 
   return (
-    <div className="py-8 sm:py-12 bg-[#FAF9F6] min-h-[70vh]">
+    <div className="py-8 sm:py-6 bg-[#FAF9F6] min-h-[70vh]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Page Title & Breadcrumb */}
         <div className="mb-8">
           <nav className="flex items-center gap-2 text-xs text-stone-400 mb-2">
@@ -143,10 +204,10 @@ export default function CartPage() {
         ) : (
           /* Full Cart Layout (Items + Summary) */
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
+
             {/* Left Items Column (8 cols) */}
             <div className="lg:col-span-8 space-y-4">
-              
+
               {/* Free Shipping Alert Bar */}
               <div className="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-xs">
                 {summary.amountNeededForFreeShipping > 0 ? (
@@ -199,7 +260,7 @@ export default function CartPage() {
                       >
                         {item.product.name}
                       </Link>
-                      
+
                       <div className="flex flex-wrap items-center gap-4 text-xs text-stone-500 pt-1">
                         <span>المقاس: <strong className="text-stone-800">{item.selectedSize}</strong></span>
                         <span className="flex items-center gap-1.5">
@@ -286,7 +347,7 @@ export default function CartPage() {
 
             {/* Right Summary Column (4 cols) */}
             <div className="lg:col-span-4 space-y-4">
-              
+
               <div className="bg-white rounded-3xl border border-stone-200/80 p-6 shadow-xs space-y-6">
                 <h3 className="text-lg font-bold text-stone-900 pb-3 border-b border-stone-100">
                   ملخص الطلب
@@ -397,7 +458,7 @@ export default function CartPage() {
 
           <div className="flex min-h-full items-center justify-center p-4 text-center">
             <div className="relative transform overflow-hidden rounded-3xl bg-white text-right shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg p-6 sm:p-8 border border-stone-200">
-              
+
               <div className="flex items-center justify-between pb-4 mb-4 border-b border-stone-200">
                 <div>
                   <h3 className="text-lg font-bold text-stone-900">إتمام الطلب السريع</h3>
@@ -458,14 +519,25 @@ export default function CartPage() {
                 </div>
 
                 <div>
+                  <label className="block font-bold text-stone-800 mb-1">البريد الإلكتروني (لتلقي تفاصيل الفاتورة)</label>
+                  <input
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="name@example.com"
+                    className="w-full bg-stone-50 p-2.5 rounded-xl border border-stone-300 text-stone-900 focus:bg-white"
+                  />
+                </div>
+
+                <div>
                   <label className="block font-bold text-stone-800 mb-2">طريقة الدفع</label>
                   <div className="grid grid-cols-2 gap-2">
                     <label
-                      className={`p-3 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${
-                        formData.paymentMethod === 'card'
+                      className={`p-3 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${formData.paymentMethod === 'card'
                           ? 'border-stone-900 bg-stone-50 font-bold'
                           : 'border-stone-200'
-                      }`}
+                        }`}
                     >
                       <input
                         type="radio"
@@ -474,15 +546,14 @@ export default function CartPage() {
                         onChange={() => setFormData({ ...formData, paymentMethod: 'card' })}
                         className="accent-stone-900"
                       />
-                      <span>بطاقة مدى / ائتمان</span>
+                      <span>بطاقة بنكية (Stripe)</span>
                     </label>
 
                     <label
-                      className={`p-3 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${
-                        formData.paymentMethod === 'cod'
+                      className={`p-3 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${formData.paymentMethod === 'cod'
                           ? 'border-stone-900 bg-stone-50 font-bold'
                           : 'border-stone-200'
-                      }`}
+                        }`}
                     >
                       <input
                         type="radio"
@@ -505,9 +576,20 @@ export default function CartPage() {
                 <div className="pt-3">
                   <button
                     type="submit"
-                    className="w-full py-3.5 bg-stone-900 text-white font-bold rounded-xl hover:bg-stone-800 transition-colors shadow-md text-sm"
+                    disabled={isProcessingPayment}
+                    className="w-full py-3.5 bg-stone-900 disabled:opacity-60 text-white font-bold rounded-xl hover:bg-[#9E866C] transition-all shadow-md text-sm flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    تأكيد الطلب الآن
+                    {isProcessingPayment ? (
+                      <>
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>جاري تحويلك إلى بوابة الدفع الآمنة...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>{formData.paymentMethod === 'card' ? 'الدفع الآن عبر Stripe' : 'تأكيد الطلب الآن'}</span>
+                        <ArrowLeftIcon size={16} />
+                      </>
+                    )}
                   </button>
                 </div>
               </form>

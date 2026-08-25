@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 interface ProductGalleryProps {
@@ -9,33 +9,48 @@ interface ProductGalleryProps {
 }
 
 export function ProductGallery({ images, productName }: ProductGalleryProps) {
-  const [selectedImage, setSelectedImage] = useState<string>(images[0] || '');
+  const validImages = images && images.length > 0 ? images : ['/placeholder.png'];
+  const [selectedImage, setSelectedImage] = useState<string>(validImages[0]);
   const [isZoomed, setIsZoomed] = useState(false);
+
+  useEffect(() => {
+    if (validImages.length > 0 && !validImages.includes(selectedImage)) {
+      setSelectedImage(validImages[0]);
+    }
+  }, [validImages, selectedImage]);
 
   return (
     <div className="flex flex-col-reverse md:flex-row gap-4">
       {/* Thumbnails list */}
-      {images.length > 1 && (
+      {validImages.length > 1 && (
         <div className="flex md:flex-col gap-2.5 overflow-x-auto md:overflow-y-auto max-h-[550px] pb-2 md:pb-0 scrollbar-none">
-          {images.map((img, idx) => (
-            <button
-              key={idx}
-              onClick={() => setSelectedImage(img)}
-              className={`relative w-16 h-20 md:w-20 md:h-24 rounded-xl overflow-hidden shrink-0 border-2 transition-all bg-stone-100 ${
-                (selectedImage || images[0]) === img
-                  ? 'border-[#9E866C] ring-2 ring-[#9E866C]/20 shadow-xs'
-                  : 'border-stone-200 opacity-70 hover:opacity-100'
-              }`}
-            >
-              <Image
-                src={img}
-                alt={`${productName} - صورة ${idx + 1}`}
-                fill
-                className="object-cover object-center"
-                sizes="80px"
-              />
-            </button>
-          ))}
+          {validImages.map((img, idx) => {
+            const isSelected = (selectedImage || validImages[0]) === img;
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setSelectedImage(img)}
+                onMouseEnter={() => setSelectedImage(img)}
+                className={`relative w-16 h-20 md:w-20 md:h-24 rounded-2xl overflow-hidden shrink-0 border-2 transition-all bg-stone-100 cursor-pointer ${
+                  isSelected
+                    ? 'border-[#9E866C] ring-2 ring-[#9E866C]/30 shadow-md scale-102'
+                    : 'border-stone-200 opacity-70 hover:opacity-100 hover:border-stone-300'
+                }`}
+              >
+                <Image
+                  src={img}
+                  alt={`${productName} - صورة ${idx + 1}`}
+                  fill
+                  className="object-cover object-center"
+                  sizes="80px"
+                />
+                <span className="absolute bottom-1 right-1 bg-black/60 backdrop-blur-xs text-white text-[9px] font-bold px-1.5 py-0.2 rounded-md">
+                  {idx === 0 ? 'رئيسية' : idx === 1 ? 'هوفر' : `${idx + 1}`}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -45,7 +60,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         onClick={() => setIsZoomed(!isZoomed)}
       >
         <Image
-          src={selectedImage || images[0]}
+          src={selectedImage || validImages[0]}
           alt={productName}
           fill
           priority
@@ -54,9 +69,16 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           }`}
           sizes="(max-width: 768px) 100vw, 50vw"
         />
-        <span className="absolute bottom-3 left-3 bg-black/50 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full pointer-events-none">
-          {isZoomed ? 'اضغط للتصغير' : 'اضغط للتكبير'}
-        </span>
+        <div className="absolute bottom-3 left-3 flex items-center gap-2 pointer-events-none">
+          <span className="bg-black/50 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full">
+            {isZoomed ? 'اضغط للتصغير' : 'اضغط للتكبير'}
+          </span>
+          {validImages.length > 1 && (
+            <span className="bg-stone-900/60 backdrop-blur-md text-stone-200 text-[10px] px-2.5 py-1 rounded-full">
+              {validImages.indexOf(selectedImage) + 1} / {validImages.length}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

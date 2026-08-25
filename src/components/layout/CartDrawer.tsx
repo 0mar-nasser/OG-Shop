@@ -93,12 +93,13 @@ export function CartDrawer() {
                 <p className="text-xs text-stone-500 max-w-xs mb-6">
                   استكشف تشكيلتنا الفاخرة وأضف المنتجات المفضلة لديك إلى سلة التسوق.
                 </p>
-                <button
+                <Link
+                  href="/products"
                   onClick={() => setIsCartDrawerOpen(false)}
                   className="px-6 py-2.5 bg-stone-900 text-white text-xs font-semibold rounded-xl hover:bg-stone-800 transition-colors"
                 >
                   بدء التسوق
-                </button>
+                </Link>
               </div>
             ) : (
               cart.map((item) => (
