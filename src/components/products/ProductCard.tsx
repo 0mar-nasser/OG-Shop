@@ -134,15 +134,16 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
 
           {/* Color swatches */}
           <div className="flex items-center gap-1">
-            {product.colors.slice(0, 3).map((col, idx) => (
-              <span
-                key={idx}
-                className="w-2.5 h-2.5 rounded-full border border-stone-300"
-                style={{ backgroundColor: col.hex }}
-                title={col.name}
-              />
-            ))}
-            {product.colors.length > 3 && (
+            {Array.isArray(product.colors) &&
+              product.colors.slice(0, 3).map((col, idx) => (
+                <span
+                  key={idx}
+                  className="w-2.5 h-2.5 rounded-full border border-stone-300"
+                  style={{ backgroundColor: col?.hex || '#1C1917' }}
+                  title={col?.name || ''}
+                />
+              ))}
+            {Array.isArray(product.colors) && product.colors.length > 3 && (
               <span className="text-[9px] text-stone-400 font-medium">
                 +{product.colors.length - 3}
               </span>

@@ -37,8 +37,12 @@ export function ProductDetailsClient({
   const { addToCart, setIsCartDrawerOpen } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
 
-  const [selectedSize, setSelectedSize] = useState<string>(product.sizes[0] || '');
-  const [selectedColor, setSelectedColor] = useState(product.colors[0] || { name: '', hex: '' });
+  const [selectedSize, setSelectedSize] = useState<string>(
+    product.sizes?.[0] || 'Free Size'
+  );
+  const [selectedColor, setSelectedColor] = useState(
+    product.colors?.[0] || { name: 'افتراضي', hex: '#1C1917' }
+  );
   const [quantity, setQuantity] = useState(1);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<string>('description');
@@ -46,12 +50,16 @@ export function ProductDetailsClient({
   const isFavorited = isInWishlist(product.id);
 
   const handleAddToCart = () => {
-    addToCart(product, selectedSize, selectedColor, quantity);
+    const size = selectedSize || product.sizes?.[0] || 'Free Size';
+    const color = selectedColor || product.colors?.[0] || { name: 'افتراضي', hex: '#1C1917' };
+    addToCart(product, size, color, quantity);
     setIsCartDrawerOpen(true);
   };
 
   const handleBuyNow = () => {
-    addToCart(product, selectedSize, selectedColor, quantity);
+    const size = selectedSize || product.sizes?.[0] || 'Free Size';
+    const color = selectedColor || product.colors?.[0] || { name: 'افتراضي', hex: '#1C1917' };
+    addToCart(product, size, color, quantity);
     router.push('/cart');
   };
 

@@ -1,5 +1,6 @@
 import prisma from './prisma';
 import { PaymentStatus, OrderStatus } from '@prisma/client';
+import { sendOrderNotificationEmail } from './mail';
 
 export interface RawOrderItemInput {
   productId: string;
@@ -244,7 +245,118 @@ export async function markOrderAsPaid(
   });
 
   console.log(`[Order Service] Order ${updatedOrder.orderNumber} successfully marked as PAID.`);
+
+  // Send automated Gmail notification with full details & images
+  const addressObj = (updatedOrder.addressDetails as any) || {};
+  sendOrderNotificationEmail({
+    orderNumber: updatedOrder.orderNumber,
+    customerName: updatedOrder.customerName,
+    customerPhone: updatedOrder.customerPhone,
+    customerEmail: updatedOrder.customerEmail,
+    city: addressObj.city || 'غير محدد',
+    address: addressObj.street || '',
+    paymentMethod: updatedOrder.paymentMethod,
+    paymentStatus: updatedOrder.paymentStatus,
+    subtotal: updatedOrder.subtotal,
+    discount: updatedOrder.discount,
+    couponCode: updatedOrder.couponCode,
+    shipping: updatedOrder.shipping,
+    total: updatedOrder.total,
+    items: updatedOrder.items.map((item) => ({
+      name: item.name,
+      image: item.image,
+      size: item.size,
+      color: item.color,
+      price: item.price,
+      quantity: item.quantity,
+    })),
+  }).catch((err) => console.error('[Order Notification Error]', err));
+
   return { order: updatedOrder, alreadyPaid: false };
+}
+
+/**
+ * Creates a Cash on Delivery (COD) order in PostgreSQL and sends Gmail notification
+ */
+export async function createCodOrder(data: CreateOrderData) {
+  const { validatedItems, subtotal } = await validateAndCalculateOrderItems(data.items);
+  const totals = calculateOrderTotals(subtotal, data.couponCode);
+  const orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+
+  let validUserId: string | null = null;
+  if (data.userId) {
+    try {
+      const existingUser = await prisma.user.findUnique({
+        where: { id: data.userId },
+        select: { id: true },
+      });
+      if (existingUser) validUserId = existingUser.id;
+    } catch {
+      validUserId = null;
+    }
+  }
+
+  const order = await prisma.order.create({
+    data: {
+      orderNumber,
+      userId: validUserId,
+      customerName: data.customerName.trim(),
+      customerEmail: data.customerEmail.trim().toLowerCase(),
+      customerPhone: data.customerPhone.trim(),
+      addressDetails: data.addressDetails as any,
+      status: OrderStatus.PENDING,
+      paymentStatus: PaymentStatus.PENDING,
+      paymentMethod: 'COD',
+      subtotal: totals.subtotal,
+      shipping: totals.shipping,
+      discount: totals.discount,
+      total: totals.total,
+      couponCode: data.couponCode || null,
+      estimatedDelivery: '3-5 أيام عمل',
+      items: {
+        create: validatedItems.map((item) => ({
+          productId: item.productId,
+          name: item.name,
+          image: item.image,
+          price: item.price,
+          quantity: item.quantity,
+          size: item.size,
+          color: item.color,
+        })),
+      },
+    },
+    include: {
+      items: true,
+    },
+  });
+
+  // Send automated Gmail notification with full details & images
+  const addressObj = (order.addressDetails as any) || {};
+  sendOrderNotificationEmail({
+    orderNumber: order.orderNumber,
+    customerName: order.customerName,
+    customerPhone: order.customerPhone,
+    customerEmail: order.customerEmail,
+    city: addressObj.city || 'غير محدد',
+    address: addressObj.street || '',
+    paymentMethod: 'COD',
+    paymentStatus: 'PENDING',
+    subtotal: order.subtotal,
+    discount: order.discount,
+    couponCode: order.couponCode,
+    shipping: order.shipping,
+    total: order.total,
+    items: order.items.map((item) => ({
+      name: item.name,
+      image: item.image,
+      size: item.size,
+      color: item.color,
+      price: item.price,
+      quantity: item.quantity,
+    })),
+  }).catch((err) => console.error('[Order Notification Error]', err));
+
+  return { order, validatedItems, totals };
 }
 
 /**

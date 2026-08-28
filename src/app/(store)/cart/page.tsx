@@ -20,6 +20,7 @@ import {
   ShieldCheckIcon,
   TruckIcon
 } from '@/components/common/Icons';
+import { CreditCard, Lock, ShieldCheck } from 'lucide-react';
 
 export default function CartPage() {
   const {
@@ -42,14 +43,14 @@ export default function CartPage() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
 
-  // Checkout Form State
+  // Checkout Form State (Shipping Details)
   const [formData, setFormData] = useState({
     fullName: user?.name || 'عمر الأحمد',
     email: user?.email || '',
     phone: user?.phone || '0501234567',
     city: 'دبي',
     address: 'شارع بوليفارد الشيخ محمد بن راشد، برج الأناقة',
-    paymentMethod: 'card'
+    paymentMethod: 'card' as 'card' | 'cod'
   });
 
   const handleApplyCoupon = (e: React.FormEvent) => {
@@ -82,7 +83,7 @@ export default function CartPage() {
       return;
     }
 
-    // Stripe Card Payment Flow
+    // Stripe Hosted Checkout Flow
     if (formData.paymentMethod === 'card') {
       try {
         setIsProcessingPayment(true);
@@ -117,7 +118,7 @@ export default function CartPage() {
           throw new Error(data.error || 'فشل في إنشاء جلسة الدفع عبر Stripe');
         }
 
-        // Redirect to Stripe Checkout
+        // Redirect user to official Stripe Checkout page
         window.location.href = data.url;
       } catch (err: any) {
         console.error('[Checkout Error]', err);
@@ -127,11 +128,49 @@ export default function CartPage() {
       return;
     }
 
-    // COD Flow
-    const fakeOrderNum = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
-    setOrderNumber(fakeOrderNum);
-    setIsOrderPlaced(true);
-    clearCart();
+    // Cash on Delivery (COD) Flow
+    try {
+      setIsProcessingPayment(true);
+
+      const payload = {
+        customerName: formData.fullName.trim(),
+        customerEmail: formData.email || user?.email || `${formData.phone}@raqi-store.com`,
+        customerPhone: formData.phone.trim(),
+        city: formData.city.trim(),
+        address: formData.address.trim(),
+        items: cart.map((item) => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+          size: item.selectedSize,
+          color: item.selectedColor.name,
+        })),
+        couponCode: appliedCoupon?.code,
+        userId: user?.id,
+      };
+
+      const res = await fetch('/api/orders/cod', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.orderNumber) {
+        throw new Error(data.error || 'تعذر تسجيل الطلب، يرجى المحاولة لاحقاً');
+      }
+
+      setOrderNumber(data.orderNumber);
+      setIsOrderPlaced(true);
+      clearCart();
+    } catch (err: any) {
+      console.error('[COD Order Error]', err);
+      showToast(err.message || 'حدث خطأ أثناء حفظ الطلب', 'error');
+    } finally {
+      setIsProcessingPayment(false);
+    }
   };
 
   return (
@@ -535,8 +574,8 @@ export default function CartPage() {
                   <div className="grid grid-cols-2 gap-2">
                     <label
                       className={`p-3 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${formData.paymentMethod === 'card'
-                          ? 'border-stone-900 bg-stone-50 font-bold'
-                          : 'border-stone-200'
+                          ? 'border-stone-900 bg-stone-50 font-bold shadow-xs'
+                          : 'border-stone-200 hover:border-stone-300'
                         }`}
                     >
                       <input
@@ -546,13 +585,16 @@ export default function CartPage() {
                         onChange={() => setFormData({ ...formData, paymentMethod: 'card' })}
                         className="accent-stone-900"
                       />
-                      <span>بطاقة بنكية (Stripe)</span>
+                      <span className="flex items-center gap-1.5">
+                        <CreditCard className="w-3.5 h-3.5 text-[#9E866C]" />
+                        <span>بطاقة بنكية (Stripe)</span>
+                      </span>
                     </label>
 
                     <label
                       className={`p-3 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${formData.paymentMethod === 'cod'
-                          ? 'border-stone-900 bg-stone-50 font-bold'
-                          : 'border-stone-200'
+                          ? 'border-stone-900 bg-stone-50 font-bold shadow-xs'
+                          : 'border-stone-200 hover:border-stone-300'
                         }`}
                     >
                       <input
@@ -566,6 +608,33 @@ export default function CartPage() {
                     </label>
                   </div>
                 </div>
+
+                {/* Stripe Hosted Checkout Notice */}
+                {formData.paymentMethod === 'card' && (
+                  <div className="p-4 bg-stone-50/90 rounded-2xl border border-stone-200 space-y-2 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between pb-1.5 border-b border-stone-200/80">
+                      <div className="flex items-center gap-1.5 text-stone-800 font-bold text-xs">
+                        <Lock className="w-3.5 h-3.5 text-[#9E866C]" />
+                        <span>بوابة دفع Stripe الآمنة</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-extrabold bg-white border border-stone-200 px-1.5 py-0.5 rounded text-emerald-800">
+                          مدى
+                        </span>
+                        <span className="text-[10px] font-extrabold bg-white border border-stone-200 px-1.5 py-0.5 rounded text-blue-800">
+                          Visa
+                        </span>
+                        <span className="text-[10px] font-extrabold bg-white border border-stone-200 px-1.5 py-0.5 rounded text-red-600">
+                          Mastercard
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-stone-600 leading-relaxed">
+                      🔒 سيتم تحويلك مباشرة إلى صفحة الدفع الرسمية والمشفرة من <strong>Stripe</strong> لإدخال بيانات بطاقتك وإتمام العملية بأعلى معايير الأمان العالمية.
+                    </p>
+                  </div>
+                )}
 
                 {/* Total Preview in modal */}
                 <div className="p-3 bg-stone-50 rounded-xl flex items-center justify-between text-stone-900 font-bold">
@@ -582,11 +651,11 @@ export default function CartPage() {
                     {isProcessingPayment ? (
                       <>
                         <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>جاري تحويلك إلى بوابة الدفع الآمنة...</span>
+                        <span>جاري تحويلك إلى صفحة Stripe الآمنة...</span>
                       </>
                     ) : (
                       <>
-                        <span>{formData.paymentMethod === 'card' ? 'الدفع الآن عبر Stripe' : 'تأكيد الطلب الآن'}</span>
+                        <span>{formData.paymentMethod === 'card' ? 'الانتقال للدفع الآمن عبر Stripe' : 'تأكيد الطلب الآن'}</span>
                         <ArrowLeftIcon size={16} />
                       </>
                     )}

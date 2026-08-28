@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import DashboardWeeklySalesChart from '@/components/admin/DashboardWeeklySalesChart';
@@ -19,6 +19,7 @@ import {
   Sparkles,
   ShoppingBag,
   TrendingUp,
+  TrendingDown,
   Tag,
   Eye,
   Check,
@@ -33,6 +34,7 @@ import {
   DollarSign,
   MessageSquare,
   BadgeCheck,
+  RefreshCw,
 } from 'lucide-react';
 
 // Mock actionable orders
@@ -248,6 +250,19 @@ const weeklySalesData = [
   { day: 'الجمعة (اليوم)', sales: 6100, orders: 27, height: '76%', isToday: true },
 ];
 
+interface WeeklyKPIMetrics {
+  weeklyRevenue: number;
+  lastWeekRevenue: number;
+  revenueGrowth: number;
+  profitMargin: number;
+  netProfit: number;
+  weeklyOrdersCount: number;
+  lastWeekOrdersCount: number;
+  ordersGrowth: number;
+  inTransitShipments: number;
+  onTimeDeliveryRate: number;
+}
+
 export default function PracticalAdminDashboard() {
   const [orders, setOrders] = useState<ActionOrder[]>(initialActionOrders);
   const [isVisible, setIsVisible] = useState(true);
@@ -256,6 +271,41 @@ export default function PracticalAdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<ActionOrder | null>(null);
   const [copiedExport, setCopiedExport] = useState(false);
+  const [isLoadingMetrics, setIsLoadingMetrics] = useState(false);
+
+  const [metrics, setMetrics] = useState<WeeklyKPIMetrics>({
+    weeklyRevenue: 40200,
+    lastWeekRevenue: 33950,
+    revenueGrowth: 18.4,
+    profitMargin: 35,
+    netProfit: 14070,
+    weeklyOrdersCount: 170,
+    lastWeekOrdersCount: 152,
+    ordersGrowth: 12.1,
+    inTransitShipments: 24,
+    onTimeDeliveryRate: 98,
+  });
+
+  const fetchMetrics = useCallback(async () => {
+    try {
+      setIsLoadingMetrics(true);
+      const res = await fetch('/api/admin/metrics');
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.metrics) {
+          setMetrics(data.metrics);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load metrics:', err);
+    } finally {
+      setIsLoadingMetrics(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMetrics();
+  }, [fetchMetrics]);
 
   // Instant order confirmation action
   const handleQuickConfirm = (orderId: string) => {
@@ -282,6 +332,11 @@ export default function PracticalAdminDashboard() {
   const pendingCount = orders.filter((o) => o.status === 'pending').length;
   const processingCount = orders.filter((o) => o.status === 'processing').length;
   const shippedCount = orders.filter((o) => o.status === 'shipped').length;
+
+  // Dynamically reflect active in-transit shipments count
+  const activeInTransitCount = useMemo(() => {
+    return metrics.inTransitShipments > 0 ? metrics.inTransitShipments : shippedCount;
+  }, [metrics.inTransitShipments, shippedCount]);
 
   const handleExportData = () => {
     const csvContent =
@@ -378,51 +433,78 @@ export default function PracticalAdminDashboard() {
       {/* 3. Primary Weekly KPI Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         {/* KPI 1: Weekly Revenue */}
-        <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs hover:border-[#9E866C]/50 transition-all space-y-2">
+        <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs hover:border-[#9E866C]/50 transition-all space-y-2 group">
           <div className="flex items-center justify-between text-xs text-stone-500 font-bold">
             <span>مبيعات هذا الأسبوع</span>
-            <span className="inline-flex items-center gap-0.5 text-stone-900 font-black text-xs bg-stone-100 px-2 py-0.5 rounded-full border border-stone-200">
-              <TrendingUp className="w-3 h-3 text-[#9E866C]" />
-              +18.4%
+            <span
+              className={`inline-flex items-center gap-0.5 text-stone-900 font-black text-xs px-2 py-0.5 rounded-full border ${
+                metrics.revenueGrowth >= 0
+                  ? 'bg-stone-100 border-stone-200 text-stone-900'
+                  : 'bg-rose-50 border-rose-200 text-rose-700'
+              }`}
+            >
+              {metrics.revenueGrowth >= 0 ? (
+                <TrendingUp className="w-3 h-3 text-[#9E866C]" />
+              ) : (
+                <TrendingDown className="w-3 h-3 text-rose-600" />
+              )}
+              {metrics.revenueGrowth >= 0 ? `+${metrics.revenueGrowth}%` : `${metrics.revenueGrowth}%`}
             </span>
           </div>
           <div className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
-            40,200 <span className="text-base font-bold text-stone-500">ر.س</span>
+            {metrics.weeklyRevenue.toLocaleString('ar-SA')}{' '}
+            <span className="text-base font-bold text-stone-500">ر.س</span>
           </div>
-          <p className="text-[11px] text-stone-400 font-medium">مقارنة بـ الأسبوع الماضي (33,950 ر.س)</p>
+          <p className="text-[11px] text-stone-400 font-medium">
+            مقارنة بـ الأسبوع الماضي ({metrics.lastWeekRevenue.toLocaleString('ar-SA')} ر.س)
+          </p>
         </div>
 
         {/* KPI 2: Net Profit (صافي الربح) */}
-        <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs hover:border-[#9E866C]/50 transition-all space-y-2">
+        <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs hover:border-[#9E866C]/50 transition-all space-y-2 group">
           <div className="flex items-center justify-between text-xs text-stone-500 font-bold">
             <span>صافي الربح الأسبوعي</span>
             <span className="inline-flex items-center gap-0.5 text-stone-900 font-black text-xs bg-stone-100 px-2 py-0.5 rounded-full border border-stone-200">
-              هامش 35%
+              هامش {metrics.profitMargin}%
             </span>
           </div>
           <div className="text-2xl sm:text-3xl font-black text-[#9E866C] tracking-tight">
-            14,070 <span className="text-base font-bold text-stone-500">ر.س</span>
+            {metrics.netProfit.toLocaleString('ar-SA')}{' '}
+            <span className="text-base font-bold text-stone-500">ر.س</span>
           </div>
           <p className="text-[11px] text-stone-400 font-medium">بعد خصم التكلفة والشحن والرسوم</p>
         </div>
 
         {/* KPI 3: Total Orders */}
-        <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs hover:border-[#9E866C]/50 transition-all space-y-2">
+        <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs hover:border-[#9E866C]/50 transition-all space-y-2 group">
           <div className="flex items-center justify-between text-xs text-stone-500 font-bold">
             <span>طلبات هذا الأسبوع</span>
-            <span className="inline-flex items-center gap-0.5 text-stone-900 font-black text-xs bg-stone-100 px-2 py-0.5 rounded-full border border-stone-200">
-              <TrendingUp className="w-3 h-3 text-[#9E866C]" />
-              +12.1%
+            <span
+              className={`inline-flex items-center gap-0.5 text-stone-900 font-black text-xs px-2 py-0.5 rounded-full border ${
+                metrics.ordersGrowth >= 0
+                  ? 'bg-stone-100 border-stone-200 text-stone-900'
+                  : 'bg-rose-50 border-rose-200 text-rose-700'
+              }`}
+            >
+              {metrics.ordersGrowth >= 0 ? (
+                <TrendingUp className="w-3 h-3 text-[#9E866C]" />
+              ) : (
+                <TrendingDown className="w-3 h-3 text-rose-600" />
+              )}
+              {metrics.ordersGrowth >= 0 ? `+${metrics.ordersGrowth}%` : `${metrics.ordersGrowth}%`}
             </span>
           </div>
           <div className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
-            170 <span className="text-base font-bold text-stone-500">طلب</span>
+            {metrics.weeklyOrdersCount.toLocaleString('ar-SA')}{' '}
+            <span className="text-base font-bold text-stone-500">طلب</span>
           </div>
-          <p className="text-[11px] text-stone-400 font-medium">معدل تسليم 98% في الموعد المحدد</p>
+          <p className="text-[11px] text-stone-400 font-medium">
+            معدل تسليم {metrics.onTimeDeliveryRate}% في الموعد المحدد
+          </p>
         </div>
 
         {/* KPI 4: In-Transit Shipments (شحنات قيد التوصيل) */}
-        <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs hover:border-[#9E866C]/50 transition-all space-y-2">
+        <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs hover:border-[#9E866C]/50 transition-all space-y-2 group">
           <div className="flex items-center justify-between text-xs text-stone-500 font-bold">
             <span>شحنات قيد التوصيل</span>
             <span className="inline-flex items-center gap-1 text-stone-900 font-black text-xs bg-stone-100 px-2 py-0.5 rounded-full border border-stone-200">
@@ -431,7 +513,8 @@ export default function PracticalAdminDashboard() {
             </span>
           </div>
           <div className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
-            24 <span className="text-base font-bold text-stone-500">شحنة</span>
+            {activeInTransitCount.toLocaleString('ar-SA')}{' '}
+            <span className="text-base font-bold text-stone-500">شحنة</span>
           </div>
           <p className="text-[11px] text-stone-400 font-medium">متوسط زمن التوصيل: 24-48 ساعة</p>
         </div>

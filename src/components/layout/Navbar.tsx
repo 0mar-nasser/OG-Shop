@@ -121,17 +121,15 @@ export function Navbar() {
     { name: 'الرجال', href: '/category/men' },
     { name: 'النساء', href: '/category/women' },
     { name: 'الأطفال', href: '/category/kids' },
-    { name: 'العروض', href: '/category/sale', highlight: true },
   ];
 
   return (
     <>
       <header
-        className={`sticky top-0 z-40 w-full transition-all duration-200 ${
-          isScrolled
+        className={`sticky top-0 z-40 w-full transition-all duration-200 ${isScrolled
             ? 'bg-white/95 backdrop-blur-md shadow-xs border-b border-stone-200/80'
             : 'bg-white border-b border-stone-100'
-        }`}
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
@@ -169,13 +167,12 @@ export function Navbar() {
                   <Link
                     key={link.name}
                     href={link.href}
-                    className={`text-sm font-bold transition-colors relative py-1 ${
-                      link.highlight
+                    className={`text-sm font-bold transition-colors relative py-1 ${link.highlight
                         ? 'text-amber-700 font-bold hover:text-amber-800'
                         : isActive
                           ? 'text-stone-950 font-bold'
                           : 'text-stone-600 hover:text-stone-950'
-                    }`}
+                      }`}
                   >
                     {link.name}
                     {isActive && (
@@ -310,11 +307,10 @@ export function Navbar() {
               {/* Account Button */}
               <Link
                 href="/account"
-                className={`p-2 text-stone-700 hover:text-stone-900 rounded-full hover:bg-stone-100 transition-colors flex items-center gap-1.5 ${
-                  pathname.startsWith('/account') || pathname.startsWith('/login') || pathname.startsWith('/register')
+                className={`p-2 text-stone-700 hover:text-stone-900 rounded-full hover:bg-stone-100 transition-colors flex items-center gap-1.5 ${pathname.startsWith('/account') || pathname.startsWith('/login') || pathname.startsWith('/register')
                     ? 'text-stone-950 bg-stone-100'
                     : ''
-                }`}
+                  }`}
                 aria-label="حسابي"
                 title={isLoggedIn ? `حسابي (${user?.name})` : 'تسجيل الدخول / إنشاء حساب'}
               >
@@ -497,13 +493,12 @@ export function Navbar() {
                   <Link
                     key={link.name}
                     href={link.href}
-                    className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium transition-colors ${
-                      link.highlight
+                    className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium transition-colors ${link.highlight
                         ? 'bg-amber-50 text-amber-900 font-bold'
                         : isActive
                           ? 'bg-stone-100 text-stone-950 font-bold'
                           : 'text-stone-700 hover:bg-stone-50'
-                    }`}
+                      }`}
                   >
                     <span>{link.name}</span>
                     <ChevronDownIcon size={16} className="-rotate-90 text-stone-400" />

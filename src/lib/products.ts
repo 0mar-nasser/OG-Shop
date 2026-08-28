@@ -9,29 +9,63 @@ type DbProduct = Prisma.ProductGetPayload<{
 
 /** Map a Prisma DB row to the frontend Product type */
 function mapProduct(p: DbProduct): Product {
+  let colors: { name: string; hex: string }[] = [];
+  if (Array.isArray(p.colors)) {
+    colors = p.colors as { name: string; hex: string }[];
+  } else if (typeof p.colors === 'string') {
+    try {
+      const parsed = JSON.parse(p.colors);
+      colors = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      colors = [];
+    }
+  } else if (p.colors && typeof p.colors === 'object') {
+    colors = Object.values(p.colors) as { name: string; hex: string }[];
+  }
+  if (!colors || colors.length === 0) {
+    colors = [{ name: 'افتراضي', hex: '#1C1917' }];
+  }
+
+  let sizes: string[] = [];
+  if (Array.isArray(p.sizes)) {
+    sizes = p.sizes;
+  } else if (typeof p.sizes === 'string') {
+    try {
+      const parsed = JSON.parse(p.sizes);
+      sizes = Array.isArray(parsed) ? parsed : [p.sizes];
+    } catch {
+      sizes = [p.sizes];
+    }
+  }
+  if (!sizes || sizes.length === 0) {
+    sizes = ['Free Size'];
+  }
+
+  const images = Array.isArray(p.images) && p.images.length > 0 ? p.images : ['https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=800'];
+
   return {
     id: p.id,
     name: p.name,
-    category: p.category.slug as CategorySlug,
-    categoryName: p.category.name,
-    subcategory: p.subcategory,
-    price: p.price,
-    oldPrice: p.oldPrice ?? undefined,
-    discount: p.discount ?? undefined,
-    images: p.images,
-    colors: p.colors as { name: string; hex: string }[],
-    sizes: p.sizes,
-    rating: p.rating,
-    reviewsCount: p.reviewsCount,
-    description: p.description,
-    shortDescription: p.shortDescription,
-    material: p.material,
-    careInstructions: p.careInstructions,
-    inStock: p.inStock,
-    isNew: p.isNew,
-    isBestSeller: p.isBestSeller,
-    featured: p.featured,
-    sku: p.sku,
+    category: (p.category?.slug || 'men') as CategorySlug,
+    categoryName: p.category?.name || 'عام',
+    subcategory: p.subcategory || 'general',
+    price: Number(p.price) || 0,
+    oldPrice: p.oldPrice ? Number(p.oldPrice) : undefined,
+    discount: p.discount ? Number(p.discount) : undefined,
+    images,
+    colors,
+    sizes,
+    rating: Number(p.rating) || 5,
+    reviewsCount: Number(p.reviewsCount) || 0,
+    description: p.description || '',
+    shortDescription: p.shortDescription || '',
+    material: p.material || '',
+    careInstructions: Array.isArray(p.careInstructions) ? p.careInstructions : [],
+    inStock: Boolean(p.inStock),
+    isNew: Boolean(p.isNew),
+    isBestSeller: Boolean(p.isBestSeller),
+    featured: Boolean(p.featured),
+    sku: p.sku || `SKU-${p.id}`,
   };
 }
 

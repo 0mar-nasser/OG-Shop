@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   BarChart3,
@@ -15,7 +15,9 @@ import {
   Settings,
   ExternalLink,
   Store,
+  LogOut,
 } from 'lucide-react';
+import { ADMIN_AUTH_KEY } from '@/app/admin/login/page';
 
 const navItems = [
   {
@@ -76,6 +78,28 @@ const navItems = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [adminEmail, setAdminEmail] = useState('omaraboghazi192002@gmail.com');
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(ADMIN_AUTH_KEY) || sessionStorage.getItem(ADMIN_AUTH_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.email) {
+          setAdminEmail(parsed.email);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem(ADMIN_AUTH_KEY);
+    sessionStorage.removeItem(ADMIN_AUTH_KEY);
+    router.replace('/admin/login');
+  };
 
   return (
     <aside className="fixed top-0 right-0 h-full w-16 md:w-15 lg:w-60 bg-stone-900 text-stone-100 z-50 flex flex-col border-l border-stone-800 transition-all duration-300">
@@ -125,7 +149,7 @@ export function AdminSidebar() {
                   {/* Dot Badge on Mobile */}
                   {item.dotBadge && (
                     <span
-                      className={`lg:hidden absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ${item.dotColor || 'bg-amber-500'} ring-2 ring-stone-900`}
+                      className={`lg:hidden absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ${item.dotColor || 'bg-emerald-500'} ring-2 ring-stone-900`}
                     />
                   )}
                 </div>
@@ -165,19 +189,34 @@ export function AdminSidebar() {
       </div>
 
       {/* Admin User Profile Footer */}
-      <div className="p-2 lg:p-4 border-t border-stone-800 bg-stone-950/40 flex items-center justify-center lg:justify-start">
-        <div className="flex items-center gap-3 p-1.5 lg:p-2 rounded-xl lg:bg-stone-800/50 lg:border lg:border-stone-800 w-full justify-center lg:justify-start">
-          <div className="relative w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-[#9E866C]/20 border border-[#9E866C]/40 flex items-center justify-center font-bold text-[#9E866C] flex-shrink-0 text-sm">
-            م
-            <span className="absolute bottom-0 left-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-stone-900" />
+      <div className="p-2 lg:p-4 border-t border-stone-800 bg-stone-950/40 flex flex-col items-center gap-2">
+        <div className="flex items-center gap-3 p-1.5 lg:p-2 rounded-xl lg:bg-stone-800/50 lg:border lg:border-stone-800 w-full justify-between">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="relative w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-[#9E866C]/20 border border-[#9E866C]/40 flex items-center justify-center font-bold text-[#9E866C] shrink-0 text-xs sm:text-sm">
+              م
+              <span className="absolute bottom-0 left-0 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-stone-900" />
+            </div>
+
+            <div className="hidden lg:block min-w-0 flex-1">
+              <p className="text-xs font-bold text-white truncate">مدير المتجر</p>
+              <p className="text-[11px] text-stone-400 truncate" title={adminEmail}>
+                {adminEmail}
+              </p>
+            </div>
           </div>
 
-          <div className="hidden lg:block min-w-0 flex-1">
-            <p className="text-sm font-bold text-white truncate">مدير المتجر</p>
-            <p className="text-xs text-stone-400 truncate">admin@ecommerce.com</p>
-          </div>
+          {/* Logout Button */}
+          <button
+            type="button"
+            onClick={handleLogout}
+            title="تسجيل الخروج من لوحة الإدارة"
+            className="p-1.5 text-stone-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </aside>
   );
 }
+

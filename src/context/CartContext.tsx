@@ -69,18 +69,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addToCart = useCallback((
     product: Product,
-    selectedSize: string,
-    selectedColor: { name: string; hex: string },
+    selectedSize?: string,
+    selectedColor?: { name: string; hex: string } | string,
     quantity: number = 1
   ) => {
-    const itemId = `${product.id}-${selectedSize}-${selectedColor.name}`;
+    if (!product || !product.id) return;
+
+    const size = selectedSize || (Array.isArray(product.sizes) && product.sizes[0]) || 'Free Size';
+    
+    let colorObj: { name: string; hex: string } = { name: 'افتراضي', hex: '#1C1917' };
+    if (typeof selectedColor === 'object' && selectedColor && selectedColor.name) {
+      colorObj = selectedColor;
+    } else if (typeof selectedColor === 'string' && selectedColor) {
+      colorObj = { name: selectedColor, hex: '#1C1917' };
+    } else if (Array.isArray(product.colors) && product.colors[0] && typeof product.colors[0] === 'object') {
+      colorObj = product.colors[0];
+    }
+
+    const qty = Math.max(1, Number(quantity) || 1);
+    const itemId = `${product.id}-${size}-${colorObj.name}`;
 
     setCart((prev) => {
       const existing = prev.find((item) => item.id === itemId);
       if (existing) {
         return prev.map((item) =>
           item.id === itemId
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: item.quantity + qty }
             : item
         );
       } else {
@@ -89,9 +103,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
           {
             id: itemId,
             product,
-            selectedSize,
-            selectedColor,
-            quantity
+            selectedSize: size,
+            selectedColor: colorObj,
+            quantity: qty
           }
         ];
       }

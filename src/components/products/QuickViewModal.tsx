@@ -19,9 +19,9 @@ export function QuickViewModal({ product, onClose }: QuickViewModalProps) {
   const { addToCart, setIsCartDrawerOpen } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
 
-  const [selectedImage, setSelectedImage] = useState<string>(product?.images[0] || '');
-  const [selectedSize, setSelectedSize] = useState<string>(product?.sizes[0] || '');
-  const [selectedColor, setSelectedColor] = useState(product?.colors[0] || { name: '', hex: '' });
+  const [selectedImage, setSelectedImage] = useState<string>(product?.images?.[0] || '');
+  const [selectedSize, setSelectedSize] = useState<string>(product?.sizes?.[0] || 'Free Size');
+  const [selectedColor, setSelectedColor] = useState(product?.colors?.[0] || { name: 'افتراضي', hex: '#1C1917' });
   const [quantity, setQuantity] = useState(1);
 
   if (!product) return null;
@@ -29,7 +29,9 @@ export function QuickViewModal({ product, onClose }: QuickViewModalProps) {
   const isFavorited = isInWishlist(product.id);
 
   const handleAddToCart = () => {
-    addToCart(product, selectedSize || product.sizes[0], selectedColor || product.colors[0], quantity);
+    const size = selectedSize || product.sizes?.[0] || 'Free Size';
+    const color = selectedColor || product.colors?.[0] || { name: 'افتراضي', hex: '#1C1917' };
+    addToCart(product, size, color, quantity);
     onClose();
     setIsCartDrawerOpen(true);
   };
