@@ -9,31 +9,31 @@ import { ArrowLeftIcon } from '../common/Icons';
 export function GenderSection() {
   const sections = [
     {
+      id: 'men',
+      tag: "MEN'S COLLECTION",
+      badge: 'المجموعة الرجالية',
+      title: 'تشكيلة الرجال',
+      subtitle: 'هوديز وسويت بانتس قطنية فاخرة تجمع بين الراحة الفائقة والأناقة العصرية',
+      href: '/category/men',
+      image: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=1200&auto=format&fit=crop'
+    },
+    {
       id: 'women',
       tag: "WOMEN'S COLLECTION",
       badge: 'المجموعة النسائية',
       title: 'تشكيلة النساء',
-      subtitle: 'أحدث الفساتين والأطقم الفاخرة المصممة بعناية فائقة وتطريز راقٍ',
+      subtitle: 'تصاميم مريحة وناعمة من الهوديز والسويت بانتس بألوان وقصات راقية',
       href: '/category/women',
-      image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1200&auto=format&fit=crop'
+      image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop'
     },
     {
-      id: 'men',
-      tag: "MEN'S ATELIER",
-      badge: 'المجموعة الرجالية',
-      title: 'تشكيلة الرجال',
-      subtitle: 'قمصان وبدل وأزياء عصرية كلاسيكية تجمع بين الأصالة والراحة التامة',
-      href: '/category/men',
-      image: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=1200&auto=format&fit=crop'
-    },
-    {
-      id: 'kids',
-      tag: "KIDS EDIT",
-      badge: 'مجموعة الأطفال',
-      title: 'تشكيلة الأطفال',
-      subtitle: 'أزياء قطنية ناعمة ومرحة مصممة بأعلى معايير الراحة لجميع الأوقات',
-      href: '/category/kids',
-      image: 'https://images.unsplash.com/photo-1519457431-44ccd64a579b?q=80&w=1200&auto=format&fit=crop'
+      id: 'unisex',
+      tag: "UNISEX ATELIER",
+      badge: 'تشكيلة للجنسين',
+      title: 'تشكيلة Unisex',
+      subtitle: 'أطقم وهوديز أوفر سايز محايدة بقصات واسعة عصرية تناسب الجميع',
+      href: '/category/unisex',
+      image: 'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?q=80&w=1200&auto=format&fit=crop'
     }
   ];
 
@@ -72,7 +72,7 @@ export function GenderSection() {
                 src={item.image}
                 alt={item.title}
                 fill
-                className="object-cover object-center transition-transform duration-1000 ease-out group-hover:scale-105"
+                className="object-cover object-center transition-transform duration-1000 ease-out"
                 sizes="(max-width: 768px) 100vw, 33vw"
               />
 

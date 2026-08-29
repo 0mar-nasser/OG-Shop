@@ -39,7 +39,7 @@ export default async function CheckoutSuccessPage({ searchParams }: SuccessPageP
   return (
     <div className="py-12 sm:py-20 bg-[#FAF7F2] min-h-[75vh] flex items-center justify-center">
       {/* Client component to clear the local cart only upon reaching success */}
-      <SuccessCartCleaner />
+      <SuccessCartCleaner orderNumber={order?.orderNumber} />
 
       <div className="max-w-xl mx-auto px-4 sm:px-6 w-full">
         <div className="bg-white rounded-3xl p-8 sm:p-12 border border-stone-200/80 shadow-xl text-center space-y-6">
@@ -98,11 +98,11 @@ export default async function CheckoutSuccessPage({ searchParams }: SuccessPageP
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
             <Link
-              href="/account"
+              href={order?.orderNumber ? `/account?order=${order.orderNumber}` : '/account'}
               className="w-full sm:w-auto px-6 py-3.5 bg-stone-900 hover:bg-[#9E866C] text-white text-xs sm:text-sm font-bold rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
             >
               <Package className="w-4 h-4" />
-              <span>متابعة الطلب في حسابي</span>
+              <span>متابعة وتتبع الطلب في حسابي</span>
             </Link>
 
             <Link

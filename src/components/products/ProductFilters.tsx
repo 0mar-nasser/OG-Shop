@@ -14,7 +14,7 @@ interface ProductFiltersProps {
   totalResultsCount: number;
 }
 
-const AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '30', '32', '34', '36', '40', '41', '42', '43', '44'];
+const AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const AVAILABLE_COLORS = [
   { name: 'أبيض', hex: '#FFFFFF' },
   { name: 'أسود', hex: '#1C1917' },

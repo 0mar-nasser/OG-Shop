@@ -1,4 +1,4 @@
-export type CategorySlug = 'men' | 'women' | 'kids' | 'sale';
+export type CategorySlug = 'men' | 'women' | 'unisex';
 
 export interface ProductReview {
   id: string;

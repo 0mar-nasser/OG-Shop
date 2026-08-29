@@ -1,5 +1,4 @@
 import { HeroSection } from '@/components/home/HeroSection';
-// import { CategoryGrid } from '@/components/home/CategoryGrid';
 import { FeaturedProducts } from '@/components/home/FeaturedProducts';
 import { PromoBanner } from '@/components/home/PromoBanner';
 import { NewArrivals } from '@/components/home/NewArrivals';
@@ -13,9 +12,8 @@ export default function HomePage() {
       {/* 1. Hero Section */}
       <HeroSection />
 
-      {/* 2. Shop by Gender / Category */}
+      {/* 2. Shop by Gender / Category (Men, Women, Unisex) */}
       <GenderSection />
-      {/* <CategoryGrid /> */}
 
       {/* 3. Featured Products (Best Sellers) */}
       <FeaturedProducts />

@@ -8,16 +8,15 @@ import { ProductGrid } from '@/components/products/ProductGrid';
 import { SearchIcon, CloseIcon } from '@/components/common/Icons';
 
 const POPULAR_SEARCHES = [
-  'كتان',
-  'قميص',
-  'فستان',
-  'سنيكرز',
-  'عباية',
-  'جلد',
-  'أطفال',
-  'بليزر',
-  'تيشيرت',
-  'حقيبة',
+  'هودي',
+  'سويت بانتس',
+  'أوفر سايز',
+  'رجالي',
+  'نسائي',
+  'unisex',
+  'أسود',
+  'رمادي',
+  'قطن ثقيل',
 ];
 
 function SearchContent() {
@@ -159,7 +158,7 @@ function SearchContent() {
               { label: 'الكل', value: 'all' },
               { label: 'رجال', value: 'men' },
               { label: 'نساء', value: 'women' },
-              { label: 'أطفال', value: 'kids' },
+              { label: 'Unisex', value: 'unisex' },
             ].map((tab) => (
               <button
                 key={tab.value}

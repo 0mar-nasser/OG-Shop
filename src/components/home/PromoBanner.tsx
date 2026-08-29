@@ -68,10 +68,10 @@ export function PromoBanner() {
               transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             >
               <Link
-                href="/category/sale"
+                href="/products"
                 className="px-8 py-4 bg-[#9E866C] hover:bg-[#8C7359] text-white text-xs sm:text-sm font-bold rounded-2xl shadow-lg transition-colors flex items-center gap-2 group/btn"
               >
-                <span>اكتشف العروض الآن</span>
+                <span>اكتشف الكاتالوج الآن</span>
                 <ArrowLeftIcon size={16} className="transition-transform duration-300 group-hover/btn:-translate-x-1" />
               </Link>
             </motion.div>

@@ -498,13 +498,13 @@ export default function AdminProductsPage() {
             نسائي
           </button>
           <button
-            onClick={() => setSelectedCategory('kids')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap ${selectedCategory === 'kids'
+            onClick={() => setSelectedCategory('unisex')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap ${selectedCategory === 'unisex'
               ? 'bg-stone-900 text-white'
               : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
               }`}
           >
-            أطفال
+            Unisex (للجنسين)
           </button>
         </div>
       </div>
@@ -576,7 +576,7 @@ export default function AdminProductsPage() {
                           ? 'رجالي'
                           : product.category === 'women'
                             ? 'نسائي'
-                            : 'أطفال'}
+                            : 'Unisex'}
                       </span>
                     </td>
 
@@ -683,7 +683,7 @@ export default function AdminProductsPage() {
                   >
                     <option value="men">ملابس رجالية</option>
                     <option value="women">ملابس نسائية</option>
-                    <option value="kids">أطفال</option>
+                    <option value="unisex">تشكيلة للجنسين (Unisex)</option>
                   </select>
                 </div>
 

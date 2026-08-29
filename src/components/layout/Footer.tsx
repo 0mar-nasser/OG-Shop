@@ -30,8 +30,9 @@ export function Footer() {
             <ul className="space-y-2.5 text-xs text-stone-400">
               <li><Link href="/category/men" className="hover:text-white transition-colors">ملابس رجالية</Link></li>
               <li><Link href="/category/women" className="hover:text-white transition-colors">ملابس نسائية</Link></li>
-              <li><Link href="/category/kids" className="hover:text-white transition-colors">ملابس أطفال</Link></li>
-              <li><Link href="/category/sale" className="text-amber-400 hover:text-amber-300 transition-colors font-semibold">عروض وتخفيضات الموسم</Link></li>
+              <li><Link href="/category/unisex" className="text-amber-400 hover:text-amber-300 transition-colors font-semibold">تشكيلة للجنسين (Unisex)</Link></li>
+              <li><Link href="/products?sub=هوديز" className="hover:text-white transition-colors">هوديز (Hoodies)</Link></li>
+              <li><Link href="/products?sub=سويت بانتس" className="hover:text-white transition-colors">سويت بانتس (Sweatpants)</Link></li>
             </ul>
           </div>
 
@@ -40,10 +41,8 @@ export function Footer() {
             <h4 className="text-sm font-bold text-white mb-4 tracking-wide">خدمة العملاء</h4>
             <ul className="space-y-2.5 text-xs text-stone-400">
               <li><Link href="/account" className="hover:text-white transition-colors">تتبع الشحنات والطلبات</Link></li>
-              <li><a href="#faq" className="hover:text-white transition-colors">الأسئلة الشائعة</a></li>
-              <li><a href="#shipping" className="hover:text-white transition-colors">الشحن والتوصيل</a></li>
-              <li><a href="#returns" className="hover:text-white transition-colors">سياسة الاسترجاع والاستبدال</a></li>
-              <li><a href="#contact" className="hover:text-white transition-colors">تواصل معنا</a></li>
+              <li><Link href="/products" className="hover:text-white transition-colors">كاتالوج الملابس الكامل</Link></li>
+              <li><Link href="/contact" className="hover:text-white transition-colors font-bold text-stone-200">تواصل معنا</Link></li>
             </ul>
           </div>
 

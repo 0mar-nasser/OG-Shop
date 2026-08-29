@@ -116,19 +116,20 @@ export function Navbar() {
     }
   };
 
-  const navLinks = [
+  const [catalogDropdownOpen, setCatalogDropdownOpen] = useState(false);
+
+  const navLinks: { name: string; href: string; isCatalog?: boolean }[] = [
     { name: 'الرئيسية', href: '/' },
-    { name: 'الرجال', href: '/category/men' },
-    { name: 'النساء', href: '/category/women' },
-    { name: 'الأطفال', href: '/category/kids' },
+    { name: 'كاتالوج الملابس', href: '/products', isCatalog: true },
+    { name: 'تواصل معنا', href: '/contact' },
   ];
 
   return (
     <>
       <header
         className={`sticky top-0 z-40 w-full transition-all duration-200 ${isScrolled
-            ? 'bg-white/95 backdrop-blur-md shadow-xs border-b border-stone-200/80'
-            : 'bg-white border-b border-stone-100'
+          ? 'bg-white/95 backdrop-blur-md shadow-xs border-b border-stone-200/80'
+          : 'bg-white border-b border-stone-100'
           }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -160,18 +161,113 @@ export function Navbar() {
             </div>
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-7">
+            <nav className="hidden lg:flex items-center gap-8">
               {navLinks.map((link) => {
-                const isActive = pathname === link.href;
+                const isActive = pathname === link.href || (link.isCatalog && (pathname.startsWith('/products') || pathname.startsWith('/category')));
+
+                if (link.isCatalog) {
+                  return (
+                    <div
+                      key={link.name}
+                      className="relative"
+                      onMouseEnter={() => setCatalogDropdownOpen(true)}
+                      onMouseLeave={() => setCatalogDropdownOpen(false)}
+                    >
+                      <Link
+                        href={link.href}
+                        className={`text-sm font-bold transition-colors relative py-2 flex items-center gap-1.5 ${isActive
+                          ? 'text-stone-950 font-bold'
+                          : 'text-stone-600 hover:text-stone-950'
+                          }`}
+                      >
+                        <span>{link.name}</span>
+                        <ChevronDownIcon size={14} className={`transition-transform duration-200 ${catalogDropdownOpen ? 'rotate-180 text-stone-900' : 'text-stone-400'}`} />
+                        {isActive && (
+                          <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-stone-900 rounded-full" />
+                        )}
+                      </Link>
+
+                      {/* Dropdown Menu for Catalog */}
+                      {catalogDropdownOpen && (
+                        <div className="absolute top-full right-0 w-64 bg-white/98 backdrop-blur-md rounded-2xl shadow-xl border border-stone-200/80 p-3.5 z-50 animate-fade-in space-y-3">
+                          <div>
+                            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block px-2.5 mb-1">
+                              التصنيفات الرئيسية
+                            </span>
+                            <div className="space-y-0.5">
+                              <Link
+                                href="/category/men"
+                                onClick={() => setCatalogDropdownOpen(false)}
+                                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold text-stone-800 hover:bg-stone-100 transition-colors"
+                              >
+                                <span>ملابس رجالية</span>
+                                <span className="text-[10px] text-stone-400 font-normal">Men</span>
+                              </Link>
+                              <Link
+                                href="/category/women"
+                                onClick={() => setCatalogDropdownOpen(false)}
+                                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold text-stone-800 hover:bg-stone-100 transition-colors"
+                              >
+                                <span>ملابس نسائية</span>
+                                <span className="text-[10px] text-stone-400 font-normal">Women</span>
+                              </Link>
+                              <Link
+                                href="/category/unisex"
+                                onClick={() => setCatalogDropdownOpen(false)}
+                                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold text-stone-800 hover:bg-stone-100 transition-colors"
+                              >
+                                <span>تشكيلة للجنسين</span>
+                                <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-bold">Unisex</span>
+                              </Link>
+                            </div>
+                          </div>
+
+                          <div className="pt-2 border-t border-stone-100">
+                            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block px-2.5 mb-1">
+                              أنواع الملابس
+                            </span>
+                            <div className="space-y-0.5">
+                              <Link
+                                href="/products?sub=هوديز"
+                                onClick={() => setCatalogDropdownOpen(false)}
+                                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold text-stone-800 hover:bg-stone-100 transition-colors"
+                              >
+                                <span>هوديز (Hoodies)</span>
+                                <span className="text-[10px] text-stone-400">قطن ثقيل</span>
+                              </Link>
+                              <Link
+                                href="/products?sub=سويت بانتس"
+                                onClick={() => setCatalogDropdownOpen(false)}
+                                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold text-stone-800 hover:bg-stone-100 transition-colors"
+                              >
+                                <span>سويت بانتس (Sweatpants)</span>
+                                <span className="text-[10px] text-stone-400">قصات مريحة</span>
+                              </Link>
+                            </div>
+                          </div>
+
+                          <div className="pt-2 border-t border-stone-100">
+                            <Link
+                              href="/products"
+                              onClick={() => setCatalogDropdownOpen(false)}
+                              className="block text-center py-2 px-3 bg-stone-900 hover:bg-[#9E866C] text-white text-xs font-bold rounded-xl transition-colors"
+                            >
+                              عرض الكاتالوج الكامل ←
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
                 return (
                   <Link
                     key={link.name}
                     href={link.href}
-                    className={`text-sm font-bold transition-colors relative py-1 ${link.highlight
-                        ? 'text-amber-700 font-bold hover:text-amber-800'
-                        : isActive
-                          ? 'text-stone-950 font-bold'
-                          : 'text-stone-600 hover:text-stone-950'
+                    className={`text-sm font-bold transition-colors relative py-1 ${isActive
+                      ? 'text-stone-950 font-bold'
+                      : 'text-stone-600 hover:text-stone-950'
                       }`}
                   >
                     {link.name}
@@ -306,10 +402,10 @@ export function Navbar() {
 
               {/* Account Button */}
               <Link
-                href="/account"
+                href="/login"
                 className={`p-2 text-stone-700 hover:text-stone-900 rounded-full hover:bg-stone-100 transition-colors flex items-center gap-1.5 ${pathname.startsWith('/account') || pathname.startsWith('/login') || pathname.startsWith('/register')
-                    ? 'text-stone-950 bg-stone-100'
-                    : ''
+                  ? 'text-stone-950 bg-stone-100'
+                  : ''
                   }`}
                 aria-label="حسابي"
                 title={isLoggedIn ? `حسابي (${user?.name})` : 'تسجيل الدخول / إنشاء حساب'}
@@ -486,27 +582,85 @@ export function Navbar() {
               </button>
             </div>
 
-            <nav className="p-4 flex-1 overflow-y-auto space-y-1">
-              {navLinks.map((link) => {
-                const isActive = pathname === link.href;
-                return (
-                  <Link
-                    key={link.name}
-                    href={link.href}
-                    className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium transition-colors ${link.highlight
-                        ? 'bg-amber-50 text-amber-900 font-bold'
-                        : isActive
-                          ? 'bg-stone-100 text-stone-950 font-bold'
-                          : 'text-stone-700 hover:bg-stone-50'
-                      }`}
-                  >
-                    <span>{link.name}</span>
-                    <ChevronDownIcon size={16} className="-rotate-90 text-stone-400" />
-                  </Link>
-                );
-              })}
+            <nav className="p-4 flex-1 overflow-y-auto space-y-2">
+              <Link
+                href="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-bold transition-colors ${pathname === '/'
+                  ? 'bg-stone-100 text-stone-950'
+                  : 'text-stone-700 hover:bg-stone-50'
+                  }`}
+              >
+                <span>الرئيسية</span>
+                <ChevronDownIcon size={16} className="-rotate-90 text-stone-400" />
+              </Link>
 
-              <div className="pt-6 mt-6 border-t border-stone-100 space-y-2">
+              {/* Catalog Section in Mobile */}
+              <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200/60 space-y-2">
+                <Link
+                  href="/products"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between font-bold text-sm text-stone-900 px-1"
+                >
+                  <span>كاتالوج الملابس الكامل</span>
+                  <span className="text-xs text-[#9E866C]">عرض الكل ←</span>
+                </Link>
+
+                <div className="pt-2 border-t border-stone-200/60 grid grid-cols-3 gap-1.5 text-center text-xs">
+                  <Link
+                    href="/category/men"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="p-2 bg-white rounded-xl font-semibold text-stone-800 border border-stone-200/60 hover:border-stone-900"
+                  >
+                    رجالي
+                  </Link>
+                  <Link
+                    href="/category/women"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="p-2 bg-white rounded-xl font-semibold text-stone-800 border border-stone-200/60 hover:border-stone-900"
+                  >
+                    نسائي
+                  </Link>
+                  <Link
+                    href="/category/unisex"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="p-2 bg-white rounded-xl font-bold text-amber-800 border border-amber-200 bg-amber-50/50"
+                  >
+                    Unisex
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-2 gap-1.5 text-center text-xs pt-1">
+                  <Link
+                    href="/products?sub=هوديز"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="p-2 bg-stone-900 text-white rounded-xl font-bold"
+                  >
+                    هوديز (Hoodies)
+                  </Link>
+                  <Link
+                    href="/products?sub=سويت بانتس"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="p-2 bg-stone-900 text-white rounded-xl font-bold"
+                  >
+                    سويت بانتس
+                  </Link>
+                </div>
+              </div>
+
+              <Link
+                href="/contact"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-bold transition-colors ${pathname === '/contact'
+                  ? 'bg-stone-100 text-stone-950'
+                  : 'text-stone-700 hover:bg-stone-50'
+                  }`}
+              >
+                <span>تواصل معنا</span>
+                <ChevronDownIcon size={16} className="-rotate-90 text-stone-400" />
+              </Link>
+
+              <div className="pt-4 mt-4 border-t border-stone-100 space-y-2">
                 <Link
                   href="/account"
                   className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-stone-700 hover:bg-stone-50 text-sm font-medium"

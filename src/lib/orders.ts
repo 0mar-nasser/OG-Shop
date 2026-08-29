@@ -403,3 +403,82 @@ export async function getOrderById(id: string) {
     },
   });
 }
+
+/**
+ * Fetches orders for a user by userId, email, phone, or a list of order numbers
+ */
+export async function getOrdersForUser(params: {
+  userId?: string;
+  email?: string;
+  phone?: string;
+  orderNumbers?: string[];
+}) {
+  const orConditions: any[] = [];
+
+  if (params.userId) {
+    orConditions.push({ userId: params.userId });
+  }
+
+  if (params.email && params.email.trim()) {
+    orConditions.push({ customerEmail: params.email.trim().toLowerCase() });
+  }
+
+  if (params.phone && params.phone.trim()) {
+    // Search with and without international code prefix
+    const cleanPhone = params.phone.replace(/[^0-9]/g, '');
+    orConditions.push({ customerPhone: params.phone.trim() });
+    if (cleanPhone) {
+      orConditions.push({ customerPhone: { contains: cleanPhone } });
+    }
+  }
+
+  if (params.orderNumbers && params.orderNumbers.length > 0) {
+    orConditions.push({ orderNumber: { in: params.orderNumbers } });
+  }
+
+  if (orConditions.length === 0) {
+    return [];
+  }
+
+  return await prisma.order.findMany({
+    where: {
+      OR: orConditions,
+    },
+    include: {
+      items: true,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+}
+
+/**
+ * Search/track orders by exact or partial order number or phone
+ */
+export async function searchOrdersForTracking(query: string) {
+  const clean = query.trim();
+  if (!clean) return [];
+
+  const cleanPhone = clean.replace(/[^0-9]/g, '');
+
+  return await prisma.order.findMany({
+    where: {
+      OR: [
+        { orderNumber: { equals: clean, mode: 'insensitive' } },
+        { orderNumber: { contains: clean, mode: 'insensitive' } },
+        { customerPhone: { contains: clean } },
+        ...(cleanPhone.length >= 7 ? [{ customerPhone: { contains: cleanPhone } }] : []),
+        { customerEmail: { equals: clean.toLowerCase() } },
+      ],
+    },
+    include: {
+      items: true,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    take: 10,
+  });
+}
+

@@ -1,6 +1,7 @@
 import prisma from './prisma';
 import { Prisma } from '@prisma/client';
 import { Product, CategorySlug } from '@/types/product';
+import { PRODUCTS as STATIC_PRODUCTS } from '@/data/products';
 
 // ─── Type helper ────────────────────────────────────────────────
 type DbProduct = Prisma.ProductGetPayload<{
@@ -41,7 +42,7 @@ function mapProduct(p: DbProduct): Product {
     sizes = ['Free Size'];
   }
 
-  const images = Array.isArray(p.images) && p.images.length > 0 ? p.images : ['https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=800'];
+  const images = Array.isArray(p.images) && p.images.length > 0 ? p.images : ['https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=800'];
 
   return {
     id: p.id,
@@ -75,87 +76,125 @@ const INCLUDE_CATEGORY = { include: { category: true } } as const;
 
 /** جلب كل المنتجات النشطة */
 export async function getProducts(): Promise<Product[]> {
-  const products = await prisma.product.findMany({
-    where: { isActive: true },
-    orderBy: { createdAt: 'desc' },
-    ...INCLUDE_CATEGORY,
-  });
-  return products.map(mapProduct);
+  try {
+    const products = await prisma.product.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
+      ...INCLUDE_CATEGORY,
+    });
+    if (products && products.length > 0) {
+      return products.map(mapProduct);
+    }
+  } catch (err) {
+    console.error('[getProducts Error]', err);
+  }
+  return STATIC_PRODUCTS;
 }
 
 /** جلب منتج واحد بالـ id */
 export async function getProductById(id: string): Promise<Product | null> {
-  const p = await prisma.product.findFirst({
-    where: { id, isActive: true },
-    ...INCLUDE_CATEGORY,
-  });
-  return p ? mapProduct(p) : null;
+  try {
+    const p = await prisma.product.findFirst({
+      where: { id, isActive: true },
+      ...INCLUDE_CATEGORY,
+    });
+    if (p) return mapProduct(p);
+  } catch (err) {
+    console.error('[getProductById Error]', err);
+  }
+  return STATIC_PRODUCTS.find((p) => p.id === id) || null;
 }
 
 /** جلب منتج واحد بالـ slug */
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const p = await prisma.product.findFirst({
-    where: { slug, isActive: true },
-    ...INCLUDE_CATEGORY,
-  });
-  return p ? mapProduct(p) : null;
+  try {
+    const p = await prisma.product.findFirst({
+      where: { slug, isActive: true },
+      ...INCLUDE_CATEGORY,
+    });
+    if (p) return mapProduct(p);
+  } catch (err) {
+    console.error('[getProductBySlug Error]', err);
+  }
+  return STATIC_PRODUCTS.find((p) => p.id === slug) || null;
 }
 
 /** جلب منتجات فئة معينة */
 export async function getProductsByCategory(
   categorySlug: string
 ): Promise<Product[]> {
-  if (categorySlug === 'sale') {
+  try {
+    if (categorySlug === 'sale') {
+      const products = await prisma.product.findMany({
+        where: { isActive: true, discount: { gt: 0 } },
+        orderBy: { discount: 'desc' },
+        ...INCLUDE_CATEGORY,
+      });
+      if (products && products.length > 0) return products.map(mapProduct);
+      return STATIC_PRODUCTS.filter((p) => (p.discount ?? 0) > 0);
+    }
+
     const products = await prisma.product.findMany({
-      where: { isActive: true, discount: { gt: 0 } },
-      orderBy: { discount: 'desc' },
+      where: {
+        isActive: true,
+        category: { slug: categorySlug },
+      },
+      orderBy: { createdAt: 'desc' },
       ...INCLUDE_CATEGORY,
     });
-    return products.map(mapProduct);
+    if (products && products.length > 0) return products.map(mapProduct);
+  } catch (err) {
+    console.error('[getProductsByCategory Error]', err);
   }
-
-  const products = await prisma.product.findMany({
-    where: {
-      isActive: true,
-      category: { slug: categorySlug },
-    },
-    orderBy: { createdAt: 'desc' },
-    ...INCLUDE_CATEGORY,
-  });
-  return products.map(mapProduct);
+  return STATIC_PRODUCTS.filter((p) => p.category === categorySlug);
 }
 
 /** جلب الـ Best Sellers */
 export async function getBestSellerProducts(limit = 8): Promise<Product[]> {
-  const products = await prisma.product.findMany({
-    where: { isActive: true, isBestSeller: true },
-    take: limit,
-    orderBy: { rating: 'desc' },
-    ...INCLUDE_CATEGORY,
-  });
-  return products.map(mapProduct);
+  try {
+    const products = await prisma.product.findMany({
+      where: { isActive: true, isBestSeller: true },
+      take: limit,
+      orderBy: { rating: 'desc' },
+      ...INCLUDE_CATEGORY,
+    });
+    if (products && products.length > 0) return products.map(mapProduct);
+  } catch (err) {
+    console.error('[getBestSellerProducts Error]', err);
+  }
+  return STATIC_PRODUCTS.filter((p) => p.isBestSeller).slice(0, limit);
 }
 
 /** جلب المنتجات الجديدة */
 export async function getNewProducts(limit = 4): Promise<Product[]> {
-  const products = await prisma.product.findMany({
-    where: { isActive: true, isNew: true },
-    take: limit,
-    orderBy: { createdAt: 'desc' },
-    ...INCLUDE_CATEGORY,
-  });
-  return products.map(mapProduct);
+  try {
+    const products = await prisma.product.findMany({
+      where: { isActive: true, isNew: true },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      ...INCLUDE_CATEGORY,
+    });
+    if (products && products.length > 0) return products.map(mapProduct);
+  } catch (err) {
+    console.error('[getNewProducts Error]', err);
+  }
+  return STATIC_PRODUCTS.filter((p) => p.isNew).slice(0, limit);
 }
 
 /** جلب المنتجات المميزة */
 export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
-  const products = await prisma.product.findMany({
-    where: { isActive: true, featured: true },
-    take: limit,
-    orderBy: { rating: 'desc' },
-    ...INCLUDE_CATEGORY,
-  });
-  return products.map(mapProduct);
+  try {
+    const products = await prisma.product.findMany({
+      where: { isActive: true, featured: true },
+      take: limit,
+      orderBy: { rating: 'desc' },
+      ...INCLUDE_CATEGORY,
+    });
+    if (products && products.length > 0) return products.map(mapProduct);
+  } catch (err) {
+    console.error('[getFeaturedProducts Error]', err);
+  }
+  return STATIC_PRODUCTS.filter((p) => p.featured).slice(0, limit);
 }
 
 /** بحث داخل قاعدة البيانات مع فلاتر اختيارية */

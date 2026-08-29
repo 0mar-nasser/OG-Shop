@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
+import { AuthCard } from '@/components/auth/AuthCard';
 import {
   ShoppingBagIcon,
   TrashIcon,
@@ -20,7 +21,7 @@ import {
   ShieldCheckIcon,
   TruckIcon
 } from '@/components/common/Icons';
-import { CreditCard, Lock, ShieldCheck } from 'lucide-react';
+import { CreditCard, Lock, ShieldCheck, AlertCircle, LogIn } from 'lucide-react';
 
 export default function CartPage() {
   const {
@@ -35,23 +36,36 @@ export default function CartPage() {
   } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { showToast } = useToast();
-  const { user } = useAuth();
+  const { user, isLoggedIn } = useAuth();
 
   const [couponCode, setCouponCode] = useState('');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
 
   // Checkout Form State (Shipping Details)
   const [formData, setFormData] = useState({
-    fullName: user?.name || 'عمر الأحمد',
+    fullName: user?.name || '',
     email: user?.email || '',
-    phone: user?.phone || '0501234567',
+    phone: user?.phone || '',
     city: 'دبي',
     address: 'شارع بوليفارد الشيخ محمد بن راشد، برج الأناقة',
     paymentMethod: 'card' as 'card' | 'cod'
   });
+
+  // Sync logged in user details to checkout form
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        fullName: user.name || prev.fullName,
+        email: user.email || prev.email,
+        phone: user.phone || prev.phone,
+      }));
+    }
+  }, [user]);
 
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,8 +84,25 @@ export default function CartPage() {
     showToast('تم نقل المنتج إلى قائمة الرغبات', 'success');
   };
 
+  const handleOpenCheckout = () => {
+    if (!isLoggedIn || !user) {
+      showToast('يرجى تسجيل الدخول أو إنشاء حساب لإتمام الطلب ومتابعة الشحنة', 'info');
+      setIsAuthModalOpen(true);
+      return;
+    }
+    setIsCheckoutOpen(true);
+  };
+
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Enforce Authentication Check
+    if (!isLoggedIn || !user?.id) {
+      showToast('يجب تسجيل الدخول أو إنشاء حساب لإتمام عملية الشراء', 'error');
+      setIsCheckoutOpen(false);
+      setIsAuthModalOpen(true);
+      return;
+    }
 
     if (cart.length === 0) {
       showToast('سلة التسوق فارغة', 'error');
@@ -101,7 +132,7 @@ export default function CartPage() {
             color: item.selectedColor.name,
           })),
           couponCode: appliedCoupon?.code,
-          userId: user?.id,
+          userId: user.id,
         };
 
         const res = await fetch('/api/checkout', {
@@ -165,6 +196,18 @@ export default function CartPage() {
       setOrderNumber(data.orderNumber);
       setIsOrderPlaced(true);
       clearCart();
+
+      // Save order number to localStorage for easy tracking
+      try {
+        const stored = localStorage.getItem('raqi_recent_orders');
+        const recentOrders: string[] = stored ? JSON.parse(stored) : [];
+        if (!recentOrders.includes(data.orderNumber)) {
+          recentOrders.unshift(data.orderNumber);
+          localStorage.setItem('raqi_recent_orders', JSON.stringify(recentOrders.slice(0, 10)));
+        }
+      } catch (e) {
+        console.error('Failed to save recent order', e);
+      }
     } catch (err: any) {
       console.error('[COD Order Error]', err);
       showToast(err.message || 'حدث خطأ أثناء حفظ الطلب', 'error');
@@ -227,10 +270,10 @@ export default function CartPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
-                href="/account"
-                className="px-6 py-3 bg-stone-900 text-white text-xs sm:text-sm font-bold rounded-2xl hover:bg-stone-800 transition-colors"
+                href={orderNumber ? `/account?order=${orderNumber}` : '/account'}
+                className="px-6 py-3 bg-stone-900 text-white text-xs sm:text-sm font-bold rounded-2xl hover:bg-stone-800 transition-colors shadow-md"
               >
-                عرض في حسابي وطلباتي
+                متابعة وتتبع الطلب في حسابي
               </Link>
               <Link
                 href="/"
@@ -300,32 +343,34 @@ export default function CartPage() {
                         {item.product.name}
                       </Link>
 
-                      <div className="flex flex-wrap items-center gap-4 text-xs text-stone-500 pt-1">
+                      <div className="text-xs text-stone-500 flex flex-wrap items-center gap-3 pt-1">
                         <span>المقاس: <strong className="text-stone-800">{item.selectedSize}</strong></span>
-                        <span className="flex items-center gap-1.5">
-                          اللون:
+                        <span>•</span>
+                        <div className="flex items-center gap-1">
+                          <span>اللون:</span>
                           <span
-                            className="w-3 h-3 rounded-full inline-block border border-stone-300"
+                            className="w-3 h-3 rounded-full border border-stone-300 inline-block"
                             style={{ backgroundColor: item.selectedColor.hex }}
                           />
                           <strong className="text-stone-800">{item.selectedColor.name}</strong>
-                        </span>
-                        <span className="text-stone-400">|</span>
-                        <span>سعر القطعة: <strong className="text-stone-800">{item.product.price} درهم</strong></span>
+                        </div>
                       </div>
 
-                      {/* Actions: Move to Wishlist & Delete */}
+                      {/* Quick Actions */}
                       <div className="flex items-center gap-4 pt-3 text-xs">
                         <button
                           onClick={() => handleMoveToWishlist(item)}
-                          className="flex items-center gap-1 text-stone-500 hover:text-[#9E866C] transition-colors"
+                          className="text-stone-500 hover:text-[#9E866C] flex items-center gap-1 transition-colors cursor-pointer"
                         >
                           <HeartIcon size={14} />
-                          <span>نقل للمفضلة</span>
+                          <span>نقل إلى المفضلة</span>
                         </button>
                         <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="flex items-center gap-1 text-stone-400 hover:text-red-600 transition-colors"
+                          onClick={() => {
+                            removeFromCart(item.id);
+                            showToast('تمت إزالة المنتج من السلة', 'info');
+                          }}
+                          className="text-red-500 hover:text-red-700 flex items-center gap-1 transition-colors cursor-pointer"
                         >
                           <TrashIcon size={14} />
                           <span>حذف</span>
@@ -333,8 +378,8 @@ export default function CartPage() {
                       </div>
                     </div>
 
-                    {/* Price & Quantity Selector */}
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-4 pt-2 sm:pt-0">
+                    {/* Price & Quantity Controls */}
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-3 pt-2 sm:pt-0">
                       <span className="text-base sm:text-lg font-extrabold text-stone-900">
                         {item.product.price * item.quantity} درهم
                       </span>
@@ -464,13 +509,26 @@ export default function CartPage() {
                   </div>
                 </div>
 
+                {/* Auth Requirement Notice if not logged in */}
+                {!isLoggedIn && (
+                  <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-200/80 text-xs text-amber-900 flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="block font-bold mb-0.5">تسجيل الدخول مطلوب</strong>
+                      <span className="text-[11px] text-amber-700 leading-relaxed">
+                        يجب تسجيل الدخول أو إنشاء حساب لإتمام طلبك وتتبع شحنتك في حسابك.
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Checkout Button */}
                 <button
-                  onClick={() => setIsCheckoutOpen(true)}
-                  className="w-full py-4 bg-stone-900 hover:bg-stone-800 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-98"
+                  onClick={handleOpenCheckout}
+                  className="w-full py-4 bg-stone-900 hover:bg-[#9E866C] text-white text-xs sm:text-sm font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-98 cursor-pointer"
                 >
-                  <span>متابعة إتمام الطلب</span>
-                  <ArrowLeftIcon size={16} />
+                  <span>{isLoggedIn ? 'متابعة إتمام الطلب' : 'تسجيل الدخول وإتمام الطلب'}</span>
+                  {isLoggedIn ? <ArrowLeftIcon size={16} /> : <LogIn className="w-4 h-4" />}
                 </button>
 
                 {/* Security Guarantee */}
@@ -668,6 +726,41 @@ export default function CartPage() {
         </div>
       )}
 
+      {/* Auth Modal (Login / Register) when user is not logged in */}
+      {isAuthModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div
+            className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs transition-opacity"
+            onClick={() => setIsAuthModalOpen(false)}
+          />
+
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <div className="relative transform overflow-hidden rounded-3xl bg-[#FAF7F2] text-right shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md p-4 sm:p-6 border border-stone-200">
+              <div className="flex items-center justify-between pb-3 mb-2 border-b border-stone-200/80">
+                <span className="text-xs font-bold text-stone-800">
+                  تسجيل الدخول لمتابعة الشراء
+                </span>
+                <button
+                  onClick={() => setIsAuthModalOpen(false)}
+                  className="p-1.5 rounded-xl hover:bg-stone-200 text-stone-400 hover:text-stone-700 transition-colors cursor-pointer"
+                >
+                  <CloseIcon size={18} />
+                </button>
+              </div>
+
+              <AuthCard
+                initialMode="login"
+                onSuccess={() => {
+                  setIsAuthModalOpen(false);
+                  setIsCheckoutOpen(true);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
+

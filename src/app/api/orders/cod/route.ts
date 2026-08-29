@@ -6,7 +6,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { customerName, customerEmail, customerPhone, address, city, items, couponCode, userId } = body;
 
-    // Validation
+    // Validation - Authentication requirement
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'يجب تسجيل الدخول أولاً لإتمام طلب الشراء.' },
+        { status: 401 }
+      );
+    }
+
     if (!customerName || !customerPhone || !items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
         { error: 'يرجى تزويد كافة البيانات المطلوبة والمنتجات في السلة.' },

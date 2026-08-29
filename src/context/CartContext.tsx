@@ -150,7 +150,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const applyCoupon = useCallback((code: string): boolean => {
     const cleanCode = code.trim().toUpperCase();
-    const found = MOCK_COUPONS.find((c) => c.code === cleanCode);
+    const found = MOCK_COUPONS.find((c: Coupon) => c.code === cleanCode);
 
     if (!found) {
       showToast('كوبون الخصم غير صالح أو منتهي', 'error');
