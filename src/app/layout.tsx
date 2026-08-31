@@ -7,10 +7,38 @@ import { WishlistProvider } from '@/context/WishlistContext';
 import { ToastContainer } from '@/components/common/ToastContainer';
 
 export const metadata: Metadata = {
-  title: 'راقِي | متجر أزياء وملابس عصرية راقية',
-  description: 'متجر راقِي للأزياء - تسوق أحدث صيحات الملابس الرجالية، النسائية، ملابس الأطفال، الأحذية والإكسسوارات الفاخرة بجودة استثنائية وشحن سريع.',
-  keywords: ['ملابس', 'أزياء', 'متجر ملابس', 'ملابس رجالية', 'فساتين نسائية', 'أحذية', 'عروض أزياء', 'متجر راقي'],
-  authors: [{ name: 'RAQI Fashion' }],
+  title: 'OG OFF GRID STORE',
+  description: "Discover stylish men’s, women’s, and unisex fashion at OG OFF GRID STORE, including hoodies, oversized pants, and more. اكتشف أحدث الملابس الرجالية والنسائية والملابس الموحدة للجنسين من OG OFF GRID، بما يشمل الهوديز والبناطيل الواسعة والمزيد.",
+  keywords: [
+    // Arabic
+    "ملابس",
+    "أزياء",
+    "متجر ملابس",
+    "ملابس شبابية",
+    "ملابس رجالية",
+    "ملابس نسائية",
+    "ملابس للجنسين",
+    "ملابس أوفر سايز",
+    "هوديز",
+    "بناطيل واسعة",
+    "متجر أوف جريد",
+    "ملابس أوف جريد",
+
+    // English
+    "OG OFF GRID STORE",
+    "Off Grid Store",
+    "Off Grid Clothing",
+    "OG Clothing",
+    "OG Fashion",
+    "men's clothing",
+    "women's clothing",
+    "unisex clothing",
+    "streetwear clothing",
+    "oversized clothing",
+    "oversized hoodies",
+    "oversized pants",
+  ],
+  authors: [{ name: 'OG OFF GRID STORE' }],
 };
 
 export default function RootLayout({

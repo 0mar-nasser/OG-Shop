@@ -170,19 +170,6 @@ export function ProductsListingView({
           )}
         </div>
 
-        {/* Header Title & Description */}
-        <div className="mb-8 pb-6 border-b border-stone-200">
-          <div className="flex flex-wrap items-center gap-3 mb-2">
-            <h1 className="text-2xl sm:text-4xl font-extrabold text-stone-900">
-              {activeHubTitle ? `${title} - ${activeHubTitle}` : title}
-            </h1>
-          </div>
-          {description && (
-            <p className="text-xs sm:text-sm text-stone-500 max-w-2xl leading-relaxed">
-              {description}
-            </p>
-          )}
-        </div>
 
         {/* Subcategories quick filter pills */}
         {subcategoriesList.length > 0 && (

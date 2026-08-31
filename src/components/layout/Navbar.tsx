@@ -117,6 +117,119 @@ export function Navbar() {
   };
 
   const [catalogDropdownOpen, setCatalogDropdownOpen] = useState(false);
+  const [hoveredMegaCategory, setHoveredMegaCategory] = useState<'default' | 'men' | 'women' | 'unisex' | 'hoodies' | 'sweatpants'>('default');
+  const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnterCatalog = () => {
+    if (dropdownTimeoutRef.current) {
+      clearTimeout(dropdownTimeoutRef.current);
+    }
+    setCatalogDropdownOpen(true);
+  };
+
+  const handleMouseLeaveCatalog = () => {
+    dropdownTimeoutRef.current = setTimeout(() => {
+      setCatalogDropdownOpen(false);
+      setHoveredMegaCategory('default');
+    }, 150);
+  };
+
+  const megaMenuCards: Record<
+    string,
+    Array<{
+      title: string;
+      desc: string;
+      image: string;
+      href: string;
+    }>
+  > = {
+    default: [
+      {
+        title: 'تصاميم استثنائية',
+        desc: 'نبتكر خارج الصندوق لعشاق التميز والأناقة العصرية.',
+        image: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=1200&auto=format&fit=crop',
+        href: '/products',
+      },
+      {
+        title: 'القطع الأساسية',
+        desc: 'قطع أساسية مريحة وعملية تناسب إطلالتك في كل مكان.',
+        image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop',
+        href: '/products',
+      },
+    ],
+    men: [
+      {
+        title: 'هوديز رجالي',
+        desc: 'خامات قطنية ثقيلة وقصات أوفر سايز عصرية للشتاء.',
+        image: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=1200&auto=format&fit=crop',
+        href: '/category/men?sub=هوديز',
+      },
+      {
+        title: 'سويت بانتس رجالي',
+        desc: 'بناطيل قطنية مريحة بقصات حديثة لإطلالة كاجوال يومية.',
+        image: 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?q=80&w=1200&auto=format&fit=crop',
+        href: '/category/men?sub=سويت بانتس',
+      },
+    ],
+    women: [
+      {
+        title: 'هوديز نسائي',
+        desc: 'قصات أنيقة وألوان دافئة تمنحك الدفء والجاذبية طوال اليوم.',
+        image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop',
+        href: '/category/women?sub=هوديز',
+      },
+      {
+        title: 'سويت بانتس نسائي',
+        desc: 'بناطيل سويت بانتس واسعة ومريحة بجودة فائقة.',
+        image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1200&auto=format&fit=crop',
+        href: '/category/women?sub=سويت بانتس',
+      },
+    ],
+    unisex: [
+      {
+        title: 'هوديز للجنسين',
+        desc: 'تصاميم مينيمال وألوان كلاسيكية تناسب الجميع.',
+        image: 'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?q=80&w=1200&auto=format&fit=crop',
+        href: '/category/unisex?sub=هوديز',
+      },
+      {
+        title: 'سويت بانتس للجنسين',
+        desc: 'قصات جوغر وفضفاضة مريحة جداً تناسب كل الأوقات.',
+        image: 'https://images.unsplash.com/photo-1552902865-b72c031ac5ea?q=80&w=1200&auto=format&fit=crop',
+        href: '/category/unisex?sub=سويت بانتس',
+      },
+    ],
+    hoodies: [
+      {
+        title: 'هوديز ثقيل أوفر سايز',
+        desc: 'خامات قطنية 100% ثقيلة ومبطنة لدفء وأناقة لا تضاهى.',
+        image: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=1200&auto=format&fit=crop',
+        href: '/products?sub=هوديز',
+      },
+      {
+        title: 'هوديز بيسك كلاسيك',
+        desc: 'ألوان سادة كلاسيكية تناسب جميع التنسيقات اليومية.',
+        image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop',
+        href: '/products?sub=هوديز',
+      },
+    ],
+    sweatpants: [
+      {
+        title: 'سويت بانتس جوغر',
+        desc: 'أستك مرن عند الكاحل مع جيوب عميقة وسحاب متين.',
+        image: 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?q=80&w=1200&auto=format&fit=crop',
+        href: '/products?sub=سويت بانتس',
+      },
+      {
+        title: 'سويت بانتس وايد ليج',
+        desc: 'قصة ستريت فضفاضة ومريحة للاستخدام اليومي والسفر.',
+        image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1200&auto=format&fit=crop',
+        href: '/products?sub=سويت بانتس',
+      },
+    ],
+  };
+
+  const currentCards = megaMenuCards[hoveredMegaCategory] || megaMenuCards.default;
 
   const navLinks: { name: string; href: string; isCatalog?: boolean }[] = [
     { name: 'الرئيسية', href: '/' },
@@ -170,8 +283,8 @@ export function Navbar() {
                     <div
                       key={link.name}
                       className="relative"
-                      onMouseEnter={() => setCatalogDropdownOpen(true)}
-                      onMouseLeave={() => setCatalogDropdownOpen(false)}
+                      onMouseEnter={handleMouseEnterCatalog}
+                      onMouseLeave={handleMouseLeaveCatalog}
                     >
                       <Link
                         href={link.href}
@@ -186,77 +299,6 @@ export function Navbar() {
                           <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-stone-900 rounded-full" />
                         )}
                       </Link>
-
-                      {/* Dropdown Menu for Catalog */}
-                      {catalogDropdownOpen && (
-                        <div className="absolute top-full right-0 w-64 bg-white/98 backdrop-blur-md rounded-2xl shadow-xl border border-stone-200/80 p-3.5 z-50 animate-fade-in space-y-3">
-                          <div>
-                            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block px-2.5 mb-1">
-                              التصنيفات الرئيسية
-                            </span>
-                            <div className="space-y-0.5">
-                              <Link
-                                href="/category/men"
-                                onClick={() => setCatalogDropdownOpen(false)}
-                                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold text-stone-800 hover:bg-stone-100 transition-colors"
-                              >
-                                <span>ملابس رجالية</span>
-                                <span className="text-[10px] text-stone-400 font-normal">Men</span>
-                              </Link>
-                              <Link
-                                href="/category/women"
-                                onClick={() => setCatalogDropdownOpen(false)}
-                                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold text-stone-800 hover:bg-stone-100 transition-colors"
-                              >
-                                <span>ملابس نسائية</span>
-                                <span className="text-[10px] text-stone-400 font-normal">Women</span>
-                              </Link>
-                              <Link
-                                href="/category/unisex"
-                                onClick={() => setCatalogDropdownOpen(false)}
-                                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold text-stone-800 hover:bg-stone-100 transition-colors"
-                              >
-                                <span>تشكيلة للجنسين</span>
-                                <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-bold">Unisex</span>
-                              </Link>
-                            </div>
-                          </div>
-
-                          <div className="pt-2 border-t border-stone-100">
-                            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block px-2.5 mb-1">
-                              أنواع الملابس
-                            </span>
-                            <div className="space-y-0.5">
-                              <Link
-                                href="/products?sub=هوديز"
-                                onClick={() => setCatalogDropdownOpen(false)}
-                                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold text-stone-800 hover:bg-stone-100 transition-colors"
-                              >
-                                <span>هوديز (Hoodies)</span>
-                                <span className="text-[10px] text-stone-400">قطن ثقيل</span>
-                              </Link>
-                              <Link
-                                href="/products?sub=سويت بانتس"
-                                onClick={() => setCatalogDropdownOpen(false)}
-                                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold text-stone-800 hover:bg-stone-100 transition-colors"
-                              >
-                                <span>سويت بانتس (Sweatpants)</span>
-                                <span className="text-[10px] text-stone-400">قصات مريحة</span>
-                              </Link>
-                            </div>
-                          </div>
-
-                          <div className="pt-2 border-t border-stone-100">
-                            <Link
-                              href="/products"
-                              onClick={() => setCatalogDropdownOpen(false)}
-                              className="block text-center py-2 px-3 bg-stone-900 hover:bg-[#9E866C] text-white text-xs font-bold rounded-xl transition-colors"
-                            >
-                              عرض الكاتالوج الكامل ←
-                            </Link>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   );
                 }
@@ -286,7 +328,7 @@ export function Navbar() {
                 <form onSubmit={handleSearchSubmit} className="relative">
                   <input
                     type="text"
-                    placeholder="ابحث عن قميص، فستان، بنطال..."
+                    placeholder="ابحث عن قميص، بنطال..."
                     value={searchQuery}
                     onFocus={() => searchQuery.trim() && setShowResultsDropdown(true)}
                     onChange={(e) => {
@@ -457,6 +499,144 @@ export function Navbar() {
 
           </div>
         </div>
+
+        {/* Full-Width Dark Mega Menu (Arabic Luxury Style) */}
+        {catalogDropdownOpen && (
+          <div
+            className="hidden lg:block absolute top-full left-0 right-0 w-full bg-[#0f0f0f] text-white border-t border-stone-800 shadow-2xl z-50 animate-in fade-in slide-in-from-top-1 duration-150"
+            onMouseEnter={handleMouseEnterCatalog}
+            onMouseLeave={handleMouseLeaveCatalog}
+            dir="rtl"
+          >
+            <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+              <div className="grid grid-cols-12 gap-8 items-stretch">
+
+                {/* Column 1: الأقسام الرئيسية */}
+                <div className="col-span-3 space-y-4 flex flex-col justify-between">
+                  <div>
+                    <span className="text-[11px] font-bold text-stone-400 uppercase tracking-widest block mb-4">
+                      الأقسام الرئيسية
+                    </span>
+                    <div className="space-y-2">
+                      <Link
+                        href="/products"
+                        onClick={() => setCatalogDropdownOpen(false)}
+                        onMouseEnter={() => setHoveredMegaCategory('default')}
+                        className={`block text-sm font-bold tracking-wide py-2 px-3 rounded-lg transition-all ${hoveredMegaCategory === 'default'
+                          ? 'text-amber-400 bg-stone-900/80 translate-x-[-4px]'
+                          : 'text-stone-200 hover:text-amber-400 hover:bg-stone-900/40'
+                          }`}
+                      >
+                        اكتشف أحدث الإطلالات
+                      </Link>
+                      <Link
+                        href="/category/men"
+                        onClick={() => setCatalogDropdownOpen(false)}
+                        onMouseEnter={() => setHoveredMegaCategory('men')}
+                        className={`block text-sm font-bold tracking-wide py-2 px-3 rounded-lg transition-all ${hoveredMegaCategory === 'men'
+                          ? 'text-amber-400 bg-stone-900/80 translate-x-[-4px]'
+                          : 'text-stone-200 hover:text-amber-400 hover:bg-stone-900/40'
+                          }`}
+                      >
+                        ملابس رجالية
+                      </Link>
+                      <Link
+                        href="/category/women"
+                        onClick={() => setCatalogDropdownOpen(false)}
+                        onMouseEnter={() => setHoveredMegaCategory('women')}
+                        className={`block text-sm font-bold tracking-wide py-2 px-3 rounded-lg transition-all ${hoveredMegaCategory === 'women'
+                          ? 'text-amber-400 bg-stone-900/80 translate-x-[-4px]'
+                          : 'text-stone-200 hover:text-amber-400 hover:bg-stone-900/40'
+                          }`}
+                      >
+                        ملابس نسائية
+                      </Link>
+                      <Link
+                        href="/category/unisex"
+                        onClick={() => setCatalogDropdownOpen(false)}
+                        onMouseEnter={() => setHoveredMegaCategory('unisex')}
+                        className={`block text-sm font-bold tracking-wide py-2 px-3 rounded-lg transition-all ${hoveredMegaCategory === 'unisex'
+                          ? 'text-amber-400 bg-stone-900/80 translate-x-[-4px]'
+                          : 'text-stone-200 hover:text-amber-400 hover:bg-stone-900/40'
+                          }`}
+                      >
+                        تشكيلة للجنسين (Unisex)
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Column 2: تسوق حسب النوع */}
+                <div className="col-span-4 space-y-4 flex flex-col justify-between">
+                  <div>
+                    <span className="text-[11px] font-bold text-stone-400 uppercase tracking-widest block mb-4">
+                      تسوق حسب النوع
+                    </span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link
+                        href="/products?sub=هوديز"
+                        onClick={() => setCatalogDropdownOpen(false)}
+                        className={`text-sm font-semibold tracking-wide p-2.5 rounded-lg transition-all ${hoveredMegaCategory === 'hoodies'
+                          ? 'text-amber-400 bg-stone-900/80'
+                          : 'text-stone-300 hover:text-white hover:bg-stone-900/40'
+                          }`}
+                      >
+                        هوديز وسويت شيرت
+                      </Link>
+                      <Link
+                        href="/products?sub=تيشيرت"
+                        onClick={() => setCatalogDropdownOpen(false)}
+                        className="text-sm font-semibold tracking-wide p-2.5 rounded-lg text-stone-300 hover:text-white hover:bg-stone-900/40 transition-all"
+                      >
+                        تيشيرتات وتوبات
+                      </Link>
+                      <Link
+                        href="/products?sub=سويت بانتس"
+                        onClick={() => setCatalogDropdownOpen(false)}
+                        className={`text-sm font-semibold tracking-wide p-2.5 rounded-lg transition-all ${hoveredMegaCategory === 'sweatpants'
+                          ? 'text-amber-400 bg-stone-900/80'
+                          : 'text-stone-300 hover:text-white hover:bg-stone-900/40'
+                          }`}
+                      >
+                        بناطيل وسويت بانتس
+                      </Link>
+                      <Link
+                        href="/products"
+                        onClick={() => setCatalogDropdownOpen(false)}
+                        className="text-sm font-semibold tracking-wide p-2.5 rounded-lg text-stone-300 hover:text-white hover:bg-stone-900/40 transition-all"
+                      >
+                        إكسسوارات وكابات
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Column 3: بطاقات الصور التفاعلية (صور بكامل الارتفاع بدون لينكات) */}
+                <div className="col-span-5 grid grid-cols-2 gap-4 h-full min-h-[220px]">
+                  {currentCards.map((card, idx) => (
+                    <div
+                      key={`${hoveredMegaCategory}-${idx}`}
+                      className="group relative rounded-2xl border border-stone-800/90 h-full w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                    >
+                      {/* Background Image with Zoom */}
+                      <Image
+                        src={card.image}
+                        alt={card.title}
+                        fill
+                        sizes="(max-width: 1200px) 250px, 320px"
+                        className="object-cover transition-transform duration-700 ease-out"
+                      />
+
+                      {/* Dark Gradient Overlay for Polished Aesthetics */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/30 to-transparent transition-colors duration-300" />
+                    </div>
+                  ))}
+                </div>
+
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Mobile Search Dropdown */}
         {searchOpen && (

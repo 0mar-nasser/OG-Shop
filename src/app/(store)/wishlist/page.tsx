@@ -23,7 +23,7 @@ export default function WishlistPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-stone-200">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 border-b border-stone-200">
           <div>
             <nav className="flex items-center gap-2 text-xs text-stone-400 mb-2">
               <Link href="/" className="hover:text-stone-700 transition-colors">
@@ -32,9 +32,6 @@ export default function WishlistPage() {
               <span>/</span>
               <span className="text-stone-800 font-semibold">قائمة الرغبات</span>
             </nav>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900">
-              قائمة أمنياتي ({wishlist.length})
-            </h1>
           </div>
 
           {wishlist.length > 0 && (

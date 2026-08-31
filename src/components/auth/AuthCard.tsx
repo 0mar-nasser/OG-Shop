@@ -138,23 +138,6 @@ export function AuthCard({ initialMode = 'login', onSuccess }: AuthCardProps) {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      {/* Brand Header */}
-      <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[#9E866C]/10 text-[#9E866C] mb-3">
-          <Sparkles className="w-6 h-6" />
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
-          {mode === 'login' && 'مرحباً بعودتك إلى راقِي'}
-          {mode === 'register' && 'انضم إلى عالم راقِي'}
-          {mode === 'forgot' && 'استعادة كلمة المرور'}
-        </h2>
-        <p className="text-xs sm:text-sm text-stone-500 mt-1">
-          {mode === 'login' && 'سجل الدخول لمتابعة طلباتك والاستمتاع بتجربة تسوق راقية'}
-          {mode === 'register' && 'أنشئ حسابك واستمتع بعروض حصرية وتجربة تسوق استثنائية'}
-          {mode === 'forgot' && 'أدخل بريدك الإلكتروني وسنرسل لك رابطاً لتعيين كلمة مرور جديدة'}
-        </p>
-      </div>
-
       {/* Main Container */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xl relative overflow-hidden backdrop-blur-md">
         {/* Ambient Top Glow */}
@@ -170,9 +153,8 @@ export function AuthCard({ initialMode = 'login', onSuccess }: AuthCardProps) {
                 setMode('login');
                 setFormError(null);
               }}
-              className={`relative flex-1 py-2.5 text-xs font-extrabold rounded-xl transition-all duration-300 z-10 cursor-pointer ${
-                mode === 'login' ? 'text-stone-900 shadow-xs' : 'text-stone-500 hover:text-stone-800'
-              }`}
+              className={`relative flex-1 py-2.5 text-xs font-extrabold rounded-xl transition-all duration-300 z-10 cursor-pointer ${mode === 'login' ? 'text-stone-900 shadow-xs' : 'text-stone-500 hover:text-stone-800'
+                }`}
             >
               {mode === 'login' && (
                 <motion.div
@@ -190,9 +172,8 @@ export function AuthCard({ initialMode = 'login', onSuccess }: AuthCardProps) {
                 setMode('register');
                 setFormError(null);
               }}
-              className={`relative flex-1 py-2.5 text-xs font-extrabold rounded-xl transition-all duration-300 z-10 cursor-pointer ${
-                mode === 'register' ? 'text-stone-900 shadow-xs' : 'text-stone-500 hover:text-stone-800'
-              }`}
+              className={`relative flex-1 py-2.5 text-xs font-extrabold rounded-xl transition-all duration-300 z-10 cursor-pointer ${mode === 'register' ? 'text-stone-900 shadow-xs' : 'text-stone-500 hover:text-stone-800'
+                }`}
             >
               {mode === 'register' && (
                 <motion.div
@@ -437,24 +418,20 @@ export function AuthCard({ initialMode = 'login', onSuccess }: AuthCardProps) {
                   <div className="mt-1.5 space-y-1">
                     <div className="flex gap-1 h-1">
                       <div
-                        className={`h-full flex-1 rounded-full transition-all ${
-                          strength >= 1 ? 'bg-red-500' : 'bg-stone-200'
-                        }`}
+                        className={`h-full flex-1 rounded-full transition-all ${strength >= 1 ? 'bg-red-500' : 'bg-stone-200'
+                          }`}
                       />
                       <div
-                        className={`h-full flex-1 rounded-full transition-all ${
-                          strength >= 2 ? 'bg-amber-500' : 'bg-stone-200'
-                        }`}
+                        className={`h-full flex-1 rounded-full transition-all ${strength >= 2 ? 'bg-amber-500' : 'bg-stone-200'
+                          }`}
                       />
                       <div
-                        className={`h-full flex-1 rounded-full transition-all ${
-                          strength >= 3 ? 'bg-emerald-500' : 'bg-stone-200'
-                        }`}
+                        className={`h-full flex-1 rounded-full transition-all ${strength >= 3 ? 'bg-emerald-500' : 'bg-stone-200'
+                          }`}
                       />
                       <div
-                        className={`h-full flex-1 rounded-full transition-all ${
-                          strength >= 4 ? 'bg-emerald-600' : 'bg-stone-200'
-                        }`}
+                        className={`h-full flex-1 rounded-full transition-all ${strength >= 4 ? 'bg-emerald-600' : 'bg-stone-200'
+                          }`}
                       />
                     </div>
                     <p className="text-[10px] text-stone-400 font-medium">
