@@ -38,19 +38,37 @@ export default function ContactPage() {
     }
 
     setIsSubmitting(true);
-    // Simulate sending message
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    showToast('تم استلام رسالتك بنجاح! سيتواصل معك فريق راقِي خلال 24 ساعة.', 'success');
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'تعذر إرسال الرسالة، يرجى المحاولة مرة أخرى.');
+      }
+
+      setIsSubmitted(true);
+      showToast('تم استلام رسالتك وإرسالها بنجاح إلى فريق راقِي.', 'success');
+    } catch (err: any) {
+      console.error('[Contact Form]', err);
+      showToast(err.message || 'حدث خطأ أثناء إرسال الرسالة.', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="py-10 sm:py-16 bg-[#FAF7F2] min-h-[85vh]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="py-5 sm:py-4 bg-[#FAF7F2] min-h-[85vh]">
+      <div className="w-full md:w-[90%] mx-auto">
 
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-xs text-stone-400 mb-8">
+        <nav className="flex items-center gap-2 text-xs text-stone-400 mb-5 px-2">
           <Link href="/" className="hover:text-stone-700 transition-colors">
             الرئيسية
           </Link>
@@ -62,12 +80,9 @@ export default function ContactPage() {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center max-w-2xl mx-auto mb-12 sm:mb-16 space-y-3"
+          className="text-center max-w-5xl mx-auto mb-10 space-y-3"
         >
-          <span className="text-xs font-bold text-[#9E866C] uppercase tracking-wider bg-[#9E866C]/10 px-3.5 py-1 rounded-full inline-block">
-            خدمة العملاء على مدار الساعة
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight">
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-stone-900 tracking-tight">
             نحن هنا لمساعدتك والإجابة عن استفساراتك
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 leading-relaxed">
@@ -80,9 +95,9 @@ export default function ContactPage() {
 
           {/* Contact Information & Channels (5 cols) */}
           <div className="lg:col-span-5 space-y-6">
-            
+
             {/* Quick WhatsApp Card */}
-            <div className="bg-gradient-to-br from-[#128C7E] to-[#075E54] text-white rounded-3xl p-6 sm:p-8 shadow-lg relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#128C7E] to-[#075E54] text-white rounded-none md:rounded-3xl p-6 sm:p-8 shadow-lg relative overflow-hidden">
               <div className="relative z-10 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center">
@@ -111,7 +126,7 @@ export default function ContactPage() {
             </div>
 
             {/* Channels Info List */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs space-y-5">
+            <div className="bg-white rounded-none md:rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs space-y-5">
               <h3 className="text-base font-bold text-stone-900 pb-3 border-b border-stone-100">
                 قنوات التواصل المباشرة
               </h3>
@@ -167,7 +182,7 @@ export default function ContactPage() {
 
           {/* Contact Form (7 cols) */}
           <div className="lg:col-span-7">
-            <div className="bg-white rounded-3xl p-6 sm:p-10 border border-stone-200/80 shadow-xs">
+            <div className="bg-white rounded-none md:rounded-3xl p-6 sm:p-10 border border-stone-200/80 shadow-xs">
               <div className="mb-6 pb-4 border-b border-stone-100">
                 <h2 className="text-xl font-bold text-stone-900">
                   أرسل لنا رسالة

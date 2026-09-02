@@ -68,9 +68,9 @@ export function ProductDetailsClient({
   };
 
   return (
-    <div className="py-8 sm:py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+    <div className="py-6">
+      <div className="max-w-7xl mx-auto">
+
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs text-stone-400 mb-6">
           <Link href="/" className="hover:text-stone-700 transition-colors">
@@ -90,8 +90,8 @@ export function ProductDetailsClient({
         </nav>
 
         {/* Main Product Layout: Gallery & Details */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-16">
-          
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-8">
+
           {/* Gallery Column (7 cols on lg) */}
           <div className="lg:col-span-7">
             <ProductGallery images={product.images} productName={product.name} />
@@ -99,7 +99,7 @@ export function ProductDetailsClient({
 
           {/* Details & Actions Column (5 cols on lg) */}
           <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
-            <div>
+            <div className="mb-2">
               {/* Badges & Category */}
               <div className="flex items-center gap-2 mb-2.5">
                 <Badge variant="outline">{product.subcategory || product.categoryName}</Badge>
@@ -153,11 +153,10 @@ export function ProductDetailsClient({
                       <button
                         key={color.name}
                         onClick={() => setSelectedColor(color)}
-                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
-                          isSelected
-                            ? 'border-stone-900 ring-2 ring-stone-900/20 scale-110 shadow-xs'
-                            : 'border-stone-300 hover:scale-105'
-                        }`}
+                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${isSelected
+                          ? 'border-stone-900 ring-2 ring-stone-900/20 scale-110 shadow-xs'
+                          : 'border-stone-300'
+                          }`}
                         style={{ backgroundColor: color.hex }}
                         title={color.name}
                       >
@@ -195,11 +194,10 @@ export function ProductDetailsClient({
                       <button
                         key={size}
                         onClick={() => setSelectedSize(size)}
-                        className={`min-w-12 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all ${
-                          isSelected
-                            ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
-                            : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400'
-                        }`}
+                        className={`min-w-12 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all ${isSelected
+                          ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                          : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400'
+                          }`}
                       >
                         {size}
                       </button>
@@ -209,7 +207,7 @@ export function ProductDetailsClient({
               </div>
 
               {/* Quantity Selector */}
-              <div className="flex items-center gap-4 mb-6">
+              <div className="flex items-center gap-4 mb-2">
                 <span className="text-xs font-bold text-stone-800">الكمية:</span>
                 <div className="flex items-center border border-stone-300 rounded-xl overflow-hidden bg-white shadow-xs">
                   <button
@@ -283,7 +281,7 @@ export function ProductDetailsClient({
         </div>
 
         {/* Product Information Accordions */}
-        <div className="mb-16 bg-white rounded-3xl border border-stone-200/80 p-6 sm:p-8 space-y-4">
+        <div className="mb-10 bg-white rounded-3xl border border-stone-200/80 p-6 space-y-4">
           <h3 className="text-lg font-bold text-stone-900 pb-4 border-b border-stone-200">
             معلومات وتفاصيل المنتج
           </h3>
@@ -297,9 +295,8 @@ export function ProductDetailsClient({
               <span>وصف القطعة والتصميم</span>
               <ChevronDownIcon
                 size={16}
-                className={`transition-transform duration-200 ${
-                  openAccordion === 'description' ? 'rotate-180 text-[#9E866C]' : 'text-stone-400'
-                }`}
+                className={`transition-transform duration-200 ${openAccordion === 'description' ? 'rotate-180 text-[#9E866C]' : 'text-stone-400'
+                  }`}
               />
             </button>
             {openAccordion === 'description' && (
@@ -318,9 +315,8 @@ export function ProductDetailsClient({
               <span>الخامة وتعليمات العناية والغسيل</span>
               <ChevronDownIcon
                 size={16}
-                className={`transition-transform duration-200 ${
-                  openAccordion === 'material' ? 'rotate-180 text-[#9E866C]' : 'text-stone-400'
-                }`}
+                className={`transition-transform duration-200 ${openAccordion === 'material' ? 'rotate-180 text-[#9E866C]' : 'text-stone-400'
+                  }`}
               />
             </button>
             {openAccordion === 'material' && (
@@ -350,9 +346,8 @@ export function ProductDetailsClient({
               <span>سياسة الشحن والاسترجاع</span>
               <ChevronDownIcon
                 size={16}
-                className={`transition-transform duration-200 ${
-                  openAccordion === 'shipping' ? 'rotate-180 text-[#9E866C]' : 'text-stone-400'
-                }`}
+                className={`transition-transform duration-200 ${openAccordion === 'shipping' ? 'rotate-180 text-[#9E866C]' : 'text-stone-400'
+                  }`}
               />
             </button>
             {openAccordion === 'shipping' && (
@@ -398,7 +393,7 @@ export function ProductDetailsClient({
                 </h2>
               </div>
               <Link
-                href={`/category/${product.category}`}
+                href="/products"
                 className="text-xs sm:text-sm font-bold text-[#9E866C] hover:underline"
               >
                 تصفح المزيد ←

@@ -20,7 +20,7 @@ export default function WishlistPage() {
 
   return (
     <div className="py-8 sm:py-6 bg-[#FAF9F6] min-h-[70vh]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 border-b border-stone-200">
@@ -77,7 +77,7 @@ export default function WishlistPage() {
                       src={product.images[0]}
                       alt={product.name}
                       fill
-                      className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                      className="object-cover object-center  transition-transform duration-300"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 25vw"
                     />
                   </Link>

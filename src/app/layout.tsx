@@ -7,7 +7,10 @@ import { WishlistProvider } from '@/context/WishlistContext';
 import { ToastContainer } from '@/components/common/ToastContainer';
 
 export const metadata: Metadata = {
-  title: 'OG OFF GRID STORE',
+  title: 'OG STORE',
+  icons: {
+    icon: '/favicon.ico'
+  },
   description: "Discover stylish men’s, women’s, and unisex fashion at OG OFF GRID STORE, including hoodies, oversized pants, and more. اكتشف أحدث الملابس الرجالية والنسائية والملابس الموحدة للجنسين من OG OFF GRID، بما يشمل الهوديز والبناطيل الواسعة والمزيد.",
   keywords: [
     // Arabic

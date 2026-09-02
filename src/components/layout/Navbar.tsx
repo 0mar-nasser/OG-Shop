@@ -229,6 +229,22 @@ export function Navbar() {
     ],
   };
 
+  interface SubCategoryItem {
+    id: string | number;
+    name: string;
+    queryParam: string; // أو slug الفئة مثل "تيشيرت" أو "سويت بانتس"
+    hoverKey?: 'hoodies' | 'sweatpants' | 'default'; // للربط مع الصور التفاعلية إذا وُجدت
+  }
+
+  // مصفوفة التصنيفات
+  const subCategories: SubCategoryItem[] = [
+    { id: 1, name: 'هوديز وسويت شيرت', queryParam: 'هوديز', hoverKey: 'hoodies' },
+    { id: 2, name: 'تيشيرتات وتوبات', queryParam: 'تيشيرت' },
+    { id: 3, name: 'بناطيل وسويت بانتس', queryParam: 'سويت بانتس', hoverKey: 'sweatpants' },
+    { id: 4, name: "اوفر سايز", queryParam: "over size" },
+  ];
+
+
   const currentCards = megaMenuCards[hoveredMegaCategory] || megaMenuCards.default;
 
   const navLinks: { name: string; href: string; isCatalog?: boolean }[] = [
@@ -245,7 +261,7 @@ export function Navbar() {
           : 'bg-white border-b border-stone-100'
           }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
 
             {/* Mobile Menu Button */}
@@ -267,7 +283,7 @@ export function Navbar() {
                   alt="OFFGRID"
                   width={130}
                   height={90}
-                  className="h-12 sm:h-14 w-auto object-contain transition-transform group-hover:scale-105"
+                  className="h-12 sm:h-14 w-auto object-contain transition-transform "
                   priority
                 />
               </Link>
@@ -379,7 +395,7 @@ export function Navbar() {
                                 src={product.images[0] || '/logo.png'}
                                 alt={product.name}
                                 fill
-                                className="object-cover group-hover:scale-105 transition-transform"
+                                className="object-cover  transition-transform"
                                 sizes="44px"
                               />
                             </div>
@@ -444,7 +460,7 @@ export function Navbar() {
 
               {/* Account Button */}
               <Link
-                href="/login"
+                href={isLoggedIn ? '/account' : '/login'}
                 className={`p-2 text-stone-700 hover:text-stone-900 rounded-full hover:bg-stone-100 transition-colors flex items-center gap-1.5 ${pathname.startsWith('/account') || pathname.startsWith('/login') || pathname.startsWith('/register')
                   ? 'text-stone-950 bg-stone-100'
                   : ''
@@ -573,40 +589,19 @@ export function Navbar() {
                       تسوق حسب النوع
                     </span>
                     <div className="grid grid-cols-2 gap-2">
-                      <Link
-                        href="/products?sub=هوديز"
-                        onClick={() => setCatalogDropdownOpen(false)}
-                        className={`text-sm font-semibold tracking-wide p-2.5 rounded-lg transition-all ${hoveredMegaCategory === 'hoodies'
-                          ? 'text-amber-400 bg-stone-900/80'
-                          : 'text-stone-300 hover:text-white hover:bg-stone-900/40'
-                          }`}
-                      >
-                        هوديز وسويت شيرت
-                      </Link>
-                      <Link
-                        href="/products?sub=تيشيرت"
-                        onClick={() => setCatalogDropdownOpen(false)}
-                        className="text-sm font-semibold tracking-wide p-2.5 rounded-lg text-stone-300 hover:text-white hover:bg-stone-900/40 transition-all"
-                      >
-                        تيشيرتات وتوبات
-                      </Link>
-                      <Link
-                        href="/products?sub=سويت بانتس"
-                        onClick={() => setCatalogDropdownOpen(false)}
-                        className={`text-sm font-semibold tracking-wide p-2.5 rounded-lg transition-all ${hoveredMegaCategory === 'sweatpants'
-                          ? 'text-amber-400 bg-stone-900/80'
-                          : 'text-stone-300 hover:text-white hover:bg-stone-900/40'
-                          }`}
-                      >
-                        بناطيل وسويت بانتس
-                      </Link>
-                      <Link
-                        href="/products"
-                        onClick={() => setCatalogDropdownOpen(false)}
-                        className="text-sm font-semibold tracking-wide p-2.5 rounded-lg text-stone-300 hover:text-white hover:bg-stone-900/40 transition-all"
-                      >
-                        إكسسوارات وكابات
-                      </Link>
+                      {subCategories.map((cat) => (
+                        <Link
+                          key={cat.id}
+                          href={`/products?sub=${cat.queryParam}`}
+                          onClick={() => setCatalogDropdownOpen(false)}
+                          className={`text-sm font-semibold tracking-wide p-2.5 rounded-lg transition-all ${hoveredMegaCategory === cat.hoverKey
+                            ? 'text-amber-400 bg-stone-900/80'
+                            : 'text-stone-300 hover:text-white hover:bg-stone-900/40'
+                            }`}
+                        >
+                          {cat.name}
+                        </Link>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -842,7 +837,8 @@ export function Navbar() {
 
               <div className="pt-4 mt-4 border-t border-stone-100 space-y-2">
                 <Link
-                  href="/account"
+                  href={isLoggedIn ? '/account' : '/login'}
+                  onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-stone-700 hover:bg-stone-50 text-sm font-medium"
                 >
                   <div className="flex items-center gap-3">

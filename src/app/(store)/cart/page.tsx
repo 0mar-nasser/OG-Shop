@@ -218,7 +218,7 @@ export default function CartPage() {
 
   return (
     <div className="py-8 sm:py-6 bg-[#FAF9F6] min-h-[70vh]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
 
         {/* Page Title & Breadcrumb */}
         <div className="mb-8">
@@ -632,8 +632,8 @@ export default function CartPage() {
                   <div className="grid grid-cols-2 gap-2">
                     <label
                       className={`p-3 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${formData.paymentMethod === 'card'
-                          ? 'border-stone-900 bg-stone-50 font-bold shadow-xs'
-                          : 'border-stone-200 hover:border-stone-300'
+                        ? 'border-stone-900 bg-stone-50 font-bold shadow-xs'
+                        : 'border-stone-200 hover:border-stone-300'
                         }`}
                     >
                       <input
@@ -651,8 +651,8 @@ export default function CartPage() {
 
                     <label
                       className={`p-3 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${formData.paymentMethod === 'cod'
-                          ? 'border-stone-900 bg-stone-50 font-bold shadow-xs'
-                          : 'border-stone-200 hover:border-stone-300'
+                        ? 'border-stone-900 bg-stone-50 font-bold shadow-xs'
+                        : 'border-stone-200 hover:border-stone-300'
                         }`}
                     >
                       <input

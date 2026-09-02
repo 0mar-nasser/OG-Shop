@@ -1,45 +1,53 @@
 import React from 'react';
-import { TruckIcon, RotateCcwIcon, ShieldCheckIcon, HeadphonesIcon } from '../common/Icons';
+import { Truck, RotateCcw, ShieldCheck, Headphones } from 'lucide-react';
 
 export function WhyChooseUs() {
   const features = [
     {
-      icon: <TruckIcon size={26} className="text-[#9E866C]" />,
+      icon: <Truck className="w-6 h-6 text-[#BD5B24]" />,
       title: 'شحن سريع ومجاني',
-      description: 'توصيل مجاني للطلبات فوق 300 درهم لجميع المدن'
+      description: 'توصيل مجاني لطلبات فوق 300 درهم لجميع المدن'
     },
     {
-      icon: <RotateCcwIcon size={26} className="text-[#9E866C]" />,
+      icon: <RotateCcw className="w-6 h-6 text-[#BD5B24]" />,
       title: 'إرجاع واستبدال سهل',
       description: 'إمكانية الإرجاع بكل بساطة خلال 14 يوماً من الاستلام'
     },
     {
-      icon: <ShieldCheckIcon size={26} className="text-[#9E866C]" />,
+      icon: <ShieldCheck className="w-6 h-6 text-[#BD5B24]" />,
       title: 'دفع آمن وموثوق',
       description: 'بوابات دفع إلكترونية مشفرة وخيارات دفع عند الاستلام'
     },
     {
-      icon: <HeadphonesIcon size={26} className="text-[#9E866C]" />,
+      icon: <Headphones className="w-6 h-6 text-[#BD5B24]" />,
       title: 'خدمة عملاء مميزة',
-      description: 'فريق دعم متواجد للإجابة على استفساراتكم طوال الأسبوع'
+      description: 'فريق دعم متواجد على استفساراتكم طوال الأسبوع'
     }
   ];
 
   return (
-    <section className="py-12 bg-[#FAF9F6] border-y border-stone-200/60">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feat) => (
+    <section className="py-10 sm:py-14 bg-[#FBF9F5] border-y border-stone-200/70 font-sans" dir="rtl">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x sm:divide-x-reverse divide-stone-200/80">
+          {features.map((feat, index) => (
             <div
               key={feat.title}
-              className="flex items-start gap-4 p-5 rounded-2xl bg-white border border-stone-200/60 shadow-xs"
+              className={`flex items-center justify-start gap-4 py-4 sm:py-2 px-3 sm:px-6 ${index !== 0 ? 'lg:pr-6' : ''
+                }`}
             >
-              <div className="p-3 rounded-xl bg-[#9E866C]/10 shrink-0">
+              {/* Circular Outlined Icon (Placed on Right in RTL) */}
+              <div className="w-12 h-12 rounded-full border border-[#BD5B24]/80 flex items-center justify-center shrink-0 bg-transparent shadow-2xs">
                 {feat.icon}
               </div>
-              <div className="space-y-1">
-                <h4 className="text-sm font-bold text-stone-900">{feat.title}</h4>
-                <p className="text-xs text-stone-500 leading-relaxed">{feat.description}</p>
+
+              {/* Text content */}
+              <div className="space-y-0.5 text-right">
+                <h4 className="text-sm sm:text-[15px] font-extrabold text-stone-900 tracking-tight">
+                  {feat.title}
+                </h4>
+                <p className="text-[11px] sm:text-xs text-stone-500 leading-relaxed max-w-[210px]">
+                  {feat.description}
+                </p>
               </div>
             </div>
           ))}

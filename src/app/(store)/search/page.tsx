@@ -78,7 +78,7 @@ function SearchContent() {
 
   return (
     <div className="py-8 sm:py-12 bg-[#FAF9F6] min-h-[75vh]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
 
         {/* Header & Big Search Input */}
         <div className="max-w-3xl mx-auto text-center mb-10 space-y-4">
@@ -126,11 +126,10 @@ function SearchContent() {
               <button
                 key={tag}
                 onClick={() => handleTagClick(tag)}
-                className={`px-3 py-1 rounded-full border transition-all ${
-                  query.toLowerCase() === tag.toLowerCase()
+                className={`px-3 py-1 rounded-full border transition-all ${query.toLowerCase() === tag.toLowerCase()
                     ? 'bg-stone-900 text-white border-stone-900 font-bold'
                     : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'
-                }`}
+                  }`}
               >
                 {tag}
               </button>
@@ -163,11 +162,10 @@ function SearchContent() {
               <button
                 key={tab.value}
                 onClick={() => setActiveCategory(tab.value)}
-                className={`px-3 py-1.5 rounded-xl font-medium shrink-0 transition-all ${
-                  activeCategory === tab.value
+                className={`px-3 py-1.5 rounded-xl font-medium shrink-0 transition-all ${activeCategory === tab.value
                     ? 'bg-stone-900 text-white shadow-xs font-bold'
                     : 'text-stone-600 hover:bg-stone-100'
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>

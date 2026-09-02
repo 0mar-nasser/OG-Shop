@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 export interface OrderEmailItem {
   name: string;
@@ -27,6 +28,12 @@ export interface OrderEmailData {
   createdAt?: Date | string;
 }
 
+function getResendClient() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return null;
+  return new Resend(apiKey);
+}
+
 /**
  * Creates Nodemailer Transporter using Gmail SMTP or custom configuration
  */
@@ -35,7 +42,6 @@ function createTransporter() {
   const pass = process.env.GMAIL_APP_PASSWORD;
 
   if (!user || !pass) {
-    console.warn('[Mail Service] GMAIL_USER or GMAIL_APP_PASSWORD is not set in .env. Email sending skipped.');
     return null;
   }
 
@@ -49,7 +55,7 @@ function createTransporter() {
 }
 
 /**
- * Sends a detailed new order notification email to the admin's Gmail
+ * Sends a detailed new order notification email to the admin
  */
 export async function sendOrderNotificationEmail(orderData: OrderEmailData) {
   try {
@@ -58,9 +64,10 @@ export async function sendOrderNotificationEmail(orderData: OrderEmailData) {
       process.env.GMAIL_USER ||
       'omaraboghazi192002@gmail.com';
 
-    const transporter = createTransporter();
+    const resend = getResendClient();
+    const transporter = !resend ? createTransporter() : null;
 
-    if (!transporter) {
+    if (!resend && !transporter) {
       // In test/development mode without SMTP credentials:
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('🔔 [إشعار طلب جديد وارد - وضع الاختبار]');
@@ -70,7 +77,7 @@ export async function sendOrderNotificationEmail(orderData: OrderEmailData) {
       console.log(`📍 العنوان: ${orderData.city} - ${orderData.address}`);
       console.log(`💰 الإجمالي: ${orderData.total} درهم (طريقة الدفع: ${orderData.paymentMethod})`);
       console.log(`🛍️ عدد المنتجات: ${orderData.items.length}`);
-      console.log('💡 ملاحظة: لتفعيل الإرسال الحقيقي عبر Gmail، أضف GMAIL_USER و GMAIL_APP_PASSWORD في .env.local');
+      console.log('💡 ملاحظة: لتفعيل الإرسال الحقيقي عبر Resend، أضف RESEND_API_KEY في ملف .env');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       return { success: true, simulated: true, recipient: recipientEmail };
     }
@@ -90,11 +97,10 @@ export async function sendOrderNotificationEmail(orderData: OrderEmailData) {
         <tr style="border-bottom: 1px solid #E7E5E4;">
           <td style="padding: 12px 8px; text-align: right;">
             <div style="display: flex; align-items: center; gap: 12px;">
-              ${
-                item.image
-                  ? `<img src="${item.image}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #E7E5E4;" />`
-                  : ''
-              }
+              ${item.image
+            ? `<img src="${item.image}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #E7E5E4;" />`
+            : ''
+          }
               <div>
                 <strong style="color: #1C1917; font-size: 14px; display: block;">${item.name}</strong>
                 <span style="color: #78716C; font-size: 12px;">المقاس: <b>${item.size}</b> | اللون: <b>${item.color}</b></span>
@@ -200,16 +206,15 @@ export async function sendOrderNotificationEmail(orderData: OrderEmailData) {
               <strong>${orderData.subtotal.toFixed(2)} درهم</strong>
             </div>
 
-            ${
-              orderData.discount > 0
-                ? `
+            ${orderData.discount > 0
+        ? `
             <div class="total-row" style="color: #16A34A;">
               <span>خصم الكوبون ${orderData.couponCode ? `(${orderData.couponCode})` : ''}:</span>
               <strong>-${orderData.discount.toFixed(2)} درهم</strong>
             </div>
             `
-                : ''
-            }
+        : ''
+      }
 
             <div class="total-row">
               <span>رسوم الشحن والتوصيل:</span>
@@ -238,17 +243,189 @@ export async function sendOrderNotificationEmail(orderData: OrderEmailData) {
     </html>
     `;
 
-    const info = await transporter.sendMail({
-      from: `"متجر راقِي" <${process.env.GMAIL_USER}>`,
-      to: recipientEmail,
-      subject: `🛍️ طلب جديد وارد #${orderData.orderNumber} - ${orderData.customerName} (${orderData.total} درهم)`,
-      html: htmlContent,
-    });
+    if (resend) {
+      const fromEmail = process.env.RESEND_FROM_EMAIL || 'متجر راقِي <onboarding@resend.dev>';
+      const { data, error } = await resend.emails.send({
+        from: fromEmail,
+        to: [recipientEmail],
+        subject: `🛍️ طلب جديد وارد #${orderData.orderNumber} - ${orderData.customerName} (${orderData.total} درهم)`,
+        html: htmlContent,
+      });
 
-    console.log(`[Mail Service] Order notification email sent successfully for #${orderData.orderNumber}: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      console.log(`[Resend Service] Order notification email sent successfully for #${orderData.orderNumber}: ${data?.id}`);
+      return { success: true, messageId: data?.id };
+    }
+
+    if (transporter) {
+      const info = await transporter.sendMail({
+        from: `"متجر راقِي" <${process.env.GMAIL_USER}>`,
+        to: recipientEmail,
+        subject: `🛍️ طلب جديد وارد #${orderData.orderNumber} - ${orderData.customerName} (${orderData.total} درهم)`,
+        html: htmlContent,
+      });
+
+      console.log(`[Mail Service] Order notification email sent successfully for #${orderData.orderNumber}: ${info.messageId}`);
+      return { success: true, messageId: info.messageId };
+    }
+
+    return { success: true, simulated: true };
   } catch (error: any) {
     console.error('[Mail Service] Error sending order notification email:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export interface ContactEmailData {
+  name: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  message: string;
+}
+
+/**
+ * Sends a contact form message email to the admin (omaraboghazi192002@gmail.com) via Resend
+ */
+export async function sendContactMessageEmail(data: ContactEmailData) {
+  try {
+    const recipientEmail =
+      process.env.ADMIN_NOTIFICATION_EMAIL ||
+      process.env.GMAIL_USER ||
+      'omaraboghazi192002@gmail.com';
+
+    const resend = getResendClient();
+    const transporter = !resend ? createTransporter() : null;
+
+    if (!resend && !transporter) {
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('📩 [رسالة تواصل جديدة واردة - وضع الاختبار]');
+      console.log(`📧 المستلم: ${recipientEmail}`);
+      console.log(`👤 الاسم: ${data.name}`);
+      console.log(`✉️ البريد: ${data.email}`);
+      console.log(`📱 الهاتف: ${data.phone || 'غير محدد'}`);
+      console.log(`📌 الموضوع: ${data.subject}`);
+      console.log(`💬 نص الرسالة:\n${data.message}`);
+      console.log('💡 ملاحظة: لتفعيل الإرسال الحقيقي، أضف RESEND_API_KEY في ملف .env');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      return { success: true, simulated: true, recipient: recipientEmail };
+    }
+
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #FAF7F2; margin: 0; padding: 20px; direction: rtl; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; border: 1px solid #E7E5E4; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .header { background: #1C1917; color: #FAF7F2; padding: 24px; text-align: center; }
+        .header h1 { margin: 0; font-size: 20px; color: #ffffff; }
+        .header p { margin: 6px 0 0 0; font-size: 13px; color: #D7C4B7; }
+        .section { padding: 24px; }
+        .info-card { background: #FAF7F2; padding: 14px 18px; border-radius: 12px; border: 1px solid #E7E5E4; margin-bottom: 12px; }
+        .info-title { font-size: 11px; color: #78716C; margin-bottom: 4px; font-weight: bold; }
+        .info-value { font-size: 14px; color: #1C1917; font-weight: 600; }
+        .message-box { background: #ffffff; border: 1px solid #D6D3D1; border-radius: 12px; padding: 18px; font-size: 14px; line-height: 1.7; color: #292524; white-space: pre-wrap; margin-top: 10px; }
+        .reply-btn { display: inline-block; background: #1C1917; color: #ffffff; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 13px; margin-top: 16px; }
+        .footer { text-align: center; padding: 16px; font-size: 11px; color: #A8A29E; border-top: 1px solid #F5F5F4; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>📩 رسالة جديدة من نموذج التواصل</h1>
+          <p>متجر راقِي - خدمة العملاء</p>
+        </div>
+
+        <div class="section">
+          <div class="info-card">
+            <div class="info-title">👤 اسم المرسل:</div>
+            <div class="info-value">${data.name}</div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-title">✉️ البريد الإلكتروني:</div>
+            <div class="info-value">
+              <a href="mailto:${data.email}" style="color: #9E866C; text-decoration: none;">${data.email}</a>
+            </div>
+          </div>
+
+          ${data.phone
+        ? `
+          <div class="info-card">
+            <div class="info-title">📱 رقم الهاتف / واتساب:</div>
+            <div class="info-value" dir="ltr" style="text-align: right;">
+              <a href="tel:${data.phone}" style="color: #1C1917; text-decoration: none;">${data.phone}</a>
+              <a href="https://wa.me/${data.phone.replace(/[^0-9]/g, '')}" style="color: #16A34A; margin-right: 10px; font-size: 12px; text-decoration: underline;">[واتساب]</a>
+            </div>
+          </div>
+          `
+        : ''
+      }
+
+          <div class="info-card">
+            <div class="info-title">📌 موضوع الرسالة:</div>
+            <div class="info-value">${data.subject}</div>
+          </div>
+
+          <div style="margin-top: 18px;">
+            <strong style="font-size: 13px; color: #44403C;">💬 نص الرسالة:</strong>
+            <div class="message-box">${data.message}</div>
+          </div>
+
+          <div style="text-align: center; margin-top: 20px;">
+            <a href="mailto:${data.email}?subject=رد: ${encodeURIComponent(data.subject)}" class="reply-btn">
+              الرد مباشرة على العميل (${data.email}) ←
+            </a>
+          </div>
+        </div>
+
+        <div class="footer">
+          تم إرسال هذه الرسالة عبر نموذج التواصل الخاص بمتجر راقِي.
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
+
+    if (resend) {
+      const fromEmail = process.env.RESEND_FROM_EMAIL || 'متجر راقِي <onboarding@resend.dev>';
+      const { data: resendData, error: resendError } = await resend.emails.send({
+        from: fromEmail,
+        to: [recipientEmail],
+        replyTo: data.email,
+        subject: `📩 رسالة جديدة من: ${data.name} - ${data.subject}`,
+        html: htmlContent,
+      });
+
+      if (resendError) {
+        throw new Error(resendError.message);
+      }
+
+      console.log(`[Resend Service] Contact message email sent successfully: ${resendData?.id}`);
+      return { success: true, messageId: resendData?.id };
+    }
+
+    if (transporter) {
+      const info = await transporter.sendMail({
+        from: `"نموذج التواصل - متجر راقِي" <${process.env.GMAIL_USER}>`,
+        to: recipientEmail,
+        replyTo: data.email,
+        subject: `📩 رسالة جديدة من: ${data.name} - ${data.subject}`,
+        html: htmlContent,
+      });
+
+      console.log(`[Mail Service] Contact message email sent successfully: ${info.messageId}`);
+      return { success: true, messageId: info.messageId };
+    }
+
+    return { success: true, simulated: true };
+  } catch (error: any) {
+    console.error('[Mail Service] Error sending contact message email:', error);
     return { success: false, error: error.message };
   }
 }

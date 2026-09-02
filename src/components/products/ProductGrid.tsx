@@ -1,14 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Product } from '@/types/product';
 import { ProductCard } from './ProductCard';
-import { QuickViewModal } from './QuickViewModal';
 import { ShoppingBagIcon } from '../common/Icons';
 
 interface ProductGridProps {
   products: Product[];
-  columns?: 3 | 4;
+  columns?: 1 | 2 | 3 | 4;
   emptyMessage?: string;
 }
 
@@ -17,8 +16,6 @@ export function ProductGrid({
   columns = 4,
   emptyMessage = 'لم يتم العثور على أي منتجات مطابقة لخيارات البحث أو التصفية.'
 }: ProductGridProps) {
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
-
   if (products.length === 0) {
     return (
       <div className="py-16 text-center bg-white rounded-3xl border border-stone-200/80 p-8">
@@ -34,26 +31,23 @@ export function ProductGrid({
   }
 
   const gridColsClass =
-    columns === 3
+    columns === 1
+      ? 'grid-cols-1'
+      : columns === 2
+      ? 'grid-cols-1 sm:grid-cols-2'
+      : columns === 3
       ? 'grid-cols-2 md:grid-cols-3'
       : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
 
   return (
-    <>
-      <div className={`grid ${gridColsClass} gap-3 sm:gap-6`}>
-        {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            onQuickView={(p) => setQuickViewProduct(p)}
-          />
-        ))}
-      </div>
-
-      <QuickViewModal
-        product={quickViewProduct}
-        onClose={() => setQuickViewProduct(null)}
-      />
-    </>
+    <div className={`grid ${gridColsClass} gap-3 sm:gap-6`}>
+      {products.map((product) => (
+        <ProductCard
+          key={product.id}
+          product={product}
+        />
+      ))}
+    </div>
   );
 }
+

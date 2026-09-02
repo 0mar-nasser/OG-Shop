@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Address } from '@/types/order';
 import { MOCK_ADDRESSES } from '@/data/mockOrders';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
@@ -31,6 +32,11 @@ import {
   AlertCircle,
   ExternalLink,
   ShieldAlert,
+  Plus,
+  Trash2,
+  Edit3,
+  X,
+  MapPin,
 } from 'lucide-react';
 
 type TabType = 'orders' | 'profile' | 'addresses' | 'settings';
@@ -77,12 +83,18 @@ interface OrderRecord {
 }
 
 function AccountContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialOrderParam = searchParams.get('order') || '';
   const initialTabParam = (searchParams.get('tab') as TabType) || 'orders';
 
   const { showToast } = useToast();
   const { user, isLoggedIn, logout, updateProfile, isLoading: isAuthLoading } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
 
   const [activeTab, setActiveTab] = useState<TabType>(initialTabParam);
   const [guestModeTab, setGuestModeTab] = useState<'track' | 'auth'>('track');
@@ -102,6 +114,160 @@ function AccountContent() {
     gender: 'male',
     birthdate: '1994-05-12',
   });
+
+  // Addresses State (Max 3)
+  const [addresses, setAddresses] = useState<Address[]>(MOCK_ADDRESSES);
+  const [isAddressesLoaded, setIsAddressesLoaded] = useState(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+  const [addressForm, setAddressForm] = useState({
+    title: '',
+    fullName: '',
+    phone: '',
+    city: 'دبي',
+    district: '',
+    street: '',
+    building: '',
+    isDefault: false,
+  });
+
+  // Load addresses from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('raqi_user_addresses');
+      if (stored) {
+        setAddresses(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error('Failed to load saved addresses', e);
+    } finally {
+      setIsAddressesLoaded(true);
+    }
+  }, []);
+
+  // Save addresses to localStorage whenever updated
+  useEffect(() => {
+    if (isAddressesLoaded) {
+      try {
+        localStorage.setItem('raqi_user_addresses', JSON.stringify(addresses));
+      } catch (e) {
+        console.error('Failed to save addresses', e);
+      }
+    }
+  }, [addresses, isAddressesLoaded]);
+
+  const handleOpenAddAddress = () => {
+    if (addresses.length >= 3) {
+      showToast('عفواً، الحد الأقصى المسموح به هو 3 عناوين فقط.', 'warning');
+      return;
+    }
+    setEditingAddressId(null);
+    setAddressForm({
+      title: '',
+      fullName: user?.name || '',
+      phone: user?.phone || '',
+      city: 'دبي',
+      district: '',
+      street: '',
+      building: '',
+      isDefault: addresses.length === 0,
+    });
+    setIsAddressModalOpen(true);
+  };
+
+  const handleOpenEditAddress = (addr: Address) => {
+    setEditingAddressId(addr.id);
+    setAddressForm({
+      title: addr.title,
+      fullName: addr.fullName,
+      phone: addr.phone,
+      city: addr.city,
+      district: addr.district || '',
+      street: addr.street,
+      building: addr.building || '',
+      isDefault: addr.isDefault,
+    });
+    setIsAddressModalOpen(true);
+  };
+
+  const handleSaveAddress = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!addressForm.title.trim() || !addressForm.fullName.trim() || !addressForm.phone.trim() || !addressForm.street.trim()) {
+      showToast('يرجى ملء جميع الحقول المطلوبة', 'error');
+      return;
+    }
+
+    if (editingAddressId) {
+      // Edit existing
+      setAddresses((prev) =>
+        prev.map((a) => {
+          if (a.id === editingAddressId) {
+            return {
+              ...a,
+              title: addressForm.title.trim(),
+              fullName: addressForm.fullName.trim(),
+              phone: addressForm.phone.trim(),
+              city: addressForm.city,
+              district: addressForm.district.trim(),
+              street: addressForm.street.trim(),
+              building: addressForm.building.trim(),
+              isDefault: addressForm.isDefault,
+            };
+          }
+          return addressForm.isDefault ? { ...a, isDefault: false } : a;
+        })
+      );
+      showToast('تم تحديث بيانات العنوان بنجاح', 'success');
+    } else {
+      // Add new (max 3 check)
+      if (addresses.length >= 3) {
+        showToast('عفواً، الحد الأقصى المسموح به هو 3 عناوين فقط.', 'warning');
+        return;
+      }
+
+      const newAddress: Address = {
+        id: `addr-${Date.now()}`,
+        title: addressForm.title.trim(),
+        fullName: addressForm.fullName.trim(),
+        phone: addressForm.phone.trim(),
+        city: addressForm.city,
+        district: addressForm.district.trim(),
+        street: addressForm.street.trim(),
+        building: addressForm.building.trim(),
+        isDefault: addressForm.isDefault || addresses.length === 0,
+      };
+
+      setAddresses((prev) => {
+        const updated = addressForm.isDefault ? prev.map((a) => ({ ...a, isDefault: false })) : [...prev];
+        return [...updated, newAddress];
+      });
+      showToast('تمت إضافة العنوان الجديد بنجاح', 'success');
+    }
+
+    setIsAddressModalOpen(false);
+  };
+
+  const handleDeleteAddress = (id: string) => {
+    setAddresses((prev) => {
+      const remaining = prev.filter((a) => a.id !== id);
+      if (remaining.length > 0 && !remaining.some((a) => a.isDefault)) {
+        remaining[0].isDefault = true;
+      }
+      return remaining;
+    });
+    showToast('تم حذف العنوان بنجاح', 'info');
+  };
+
+  const handleSetDefaultAddress = (id: string) => {
+    setAddresses((prev) =>
+      prev.map((a) => ({
+        ...a,
+        isDefault: a.id === id,
+      }))
+    );
+    showToast('تم تعيين العنوان كعنوان افتراضي', 'success');
+  };
 
   useEffect(() => {
     if (user) {
@@ -401,8 +567,8 @@ function AccountContent() {
 
   // Logged-in Customer Dashboard
   return (
-    <div className="py-6 sm:py-10 bg-[#FAF7F2] min-h-[80vh]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="py-5 bg-[#FAF7F2] min-h-[80vh]">
+      <div className="max-w-7xl mx-auto px-3 lg:px-8">
 
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-xs text-stone-400 mb-6">
@@ -413,40 +579,85 @@ function AccountContent() {
           <span className="text-stone-800 font-bold">حسابي وسجل الطلبات</span>
         </nav>
 
-        {/* Header with User Info & Logout */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8 p-4 sm:p-8 bg-white rounded-3xl border border-stone-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#9E866C] to-[#C68B59] text-white flex items-center justify-center font-black text-2xl shadow-md uppercase">
-              {user?.name?.charAt(0) || 'U'}
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-extrabold text-stone-900">
-                أهلاً بك، {user?.name || 'عزيزي العميل'}
-              </h1>
-              <p className="text-xs text-stone-500 mt-0.5">{user?.email}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={logout}
-              className="px-4 py-2.5 text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-xl transition-all flex items-center gap-2 cursor-pointer"
+        {/* Mobile / Tablet Sticky Horizontal Sub-Navbar (< md) */}
+        <div className="md:hidden sticky top-16 sm:top-20 z-30 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-stone-200/80 py-2.5 px-4 -mx-4 sm:-mx-6 mb-6 overflow-x-auto no-scrollbar flex items-center gap-2">
+          {/* Tab 1: Orders */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('orders')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all border ${activeTab === 'orders'
+                ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                : 'bg-white text-stone-700 border-stone-200 hover:border-stone-300 hover:bg-stone-50'
+              }`}
+          >
+            <PackageIcon size={14} />
+            <span>سجل الطلبات</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${activeTab === 'orders' ? 'bg-white/20 text-white' : 'bg-stone-100 text-stone-700'
+                }`}
             >
-              <LogOut className="w-4 h-4" />
-              <span>تسجيل الخروج</span>
-            </button>
-          </div>
-        </motion.div>
+              {orders.length}
+            </span>
+          </button>
+
+          {/* Tab 2: Profile */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('profile')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all border ${activeTab === 'profile'
+                ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                : 'bg-white text-stone-700 border-stone-200 hover:border-stone-300 hover:bg-stone-50'
+              }`}
+          >
+            <UserIcon size={14} />
+            <span>الملف الشخصي</span>
+          </button>
+
+          {/* Tab 3: Addresses */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('addresses')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all border ${activeTab === 'addresses'
+                ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                : 'bg-white text-stone-700 border-stone-200 hover:border-stone-300 hover:bg-stone-50'
+              }`}
+          >
+            <MapPinIcon size={14} />
+            <span>العناوين</span>
+          </button>
+
+          {/* Tab 4: Settings */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('settings')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all border ${activeTab === 'settings'
+                ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                : 'bg-white text-stone-700 border-stone-200 hover:border-stone-300 hover:bg-stone-50'
+              }`}
+          >
+            <ShieldCheckIcon size={14} />
+            <span>الأمان والإعدادات</span>
+          </button>
+
+          {/* Divider */}
+          <div className="h-4 w-px bg-stone-300 shrink-0 mx-1" />
+
+          {/* Logout Button */}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shrink-0 text-rose-600 bg-rose-50 border border-rose-200/70 hover:bg-rose-100 transition-all"
+          >
+            <LogOut size={13} className="text-rose-600" />
+            <span>تسجيل الخروج</span>
+          </button>
+        </div>
 
         {/* Dashboard Grid (Sidebar Tabs + Tab Content) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8">
 
-          {/* Sidebar Tabs (3 cols) */}
-          <div className="lg:col-span-3">
+          {/* Sidebar Tabs (Desktop md+) */}
+          <div className="hidden md:block md:col-span-4 lg:col-span-3">
             <div className="bg-white rounded-3xl border border-stone-200/80 p-3 shadow-xs space-y-1.5 sticky top-24">
               <button
                 onClick={() => setActiveTab('orders')}
@@ -499,11 +710,23 @@ function AccountContent() {
                   <span>الأمان والإعدادات</span>
                 </div>
               </button>
+
+              <div className="pt-2 mt-2 border-t border-stone-100">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50/80 transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <LogOut size={18} className="text-rose-500" />
+                    <span>تسجيل الخروج</span>
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Tab Content Area (9 cols) */}
-          <div className="lg:col-span-9">
+          {/* Tab Content Area (Desktop 8-9 cols, Mobile full) */}
+          <div className="md:col-span-8 lg:col-span-9">
 
             {/* TAB 1: ORDERS */}
             {activeTab === 'orders' && (
@@ -649,57 +872,300 @@ function AccountContent() {
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-6"
               >
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-bold text-stone-900">عناوين التوصيل</h2>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
+                  <div>
+                    <h2 className="text-lg font-bold text-stone-900 flex items-center gap-2">
+                      <span>عناوين التوصيل</span>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-stone-100 text-stone-600">
+                        {addresses.length} من 3 عناوين
+                      </span>
+                    </h2>
+                    <p className="text-xs text-stone-500 mt-0.5">
+                      يمكنك حفظ حتى 3 عناوين توصيل مختلفة واستخدامها أثناء إتمام الطلب
+                    </p>
+                  </div>
+
                   <button
-                    onClick={() => showToast('نموذج إضافة عنوان جديد متاح تجريبياً', 'info')}
-                    className="text-xs font-bold text-[#9E866C] hover:underline cursor-pointer"
+                    onClick={handleOpenAddAddress}
+                    disabled={addresses.length >= 3}
+                    className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${addresses.length >= 3
+                        ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
+                        : 'bg-stone-900 hover:bg-[#9E866C] text-white cursor-pointer shadow-xs'
+                      }`}
                   >
-                    + إضافة عنوان جديد
+                    <Plus size={15} />
+                    <span>{addresses.length >= 3 ? 'وصلت للحد الأقصى (3)' : '+ إضافة عنوان جديد'}</span>
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {MOCK_ADDRESSES.map((addr) => (
-                    <div
-                      key={addr.id}
-                      className={`p-5 rounded-3xl bg-white border ${addr.isDefault ? 'border-[#9E866C] ring-2 ring-[#9E866C]/20' : 'border-stone-200/80'
-                        } shadow-xs space-y-3`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold text-stone-900">{addr.title}</span>
-                        {addr.isDefault && (
-                          <span className="text-[10px] bg-[#9E866C]/15 text-[#735A42] px-2 py-0.5 rounded-full font-bold">
-                            العنوان الافتراضي
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="text-xs text-stone-600 space-y-1">
-                        <p className="font-semibold text-stone-800">{addr.fullName} ({addr.phone})</p>
-                        <p>{addr.city}، {addr.district}</p>
-                        <p>{addr.street}، {addr.building}</p>
-                      </div>
-
-                      <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-xs">
-                        <button
-                          onClick={() => showToast('تم تعيين العنوان الافتراضي', 'success')}
-                          className="text-stone-500 hover:text-stone-900 cursor-pointer"
-                        >
-                          تعديل
-                        </button>
-                        {!addr.isDefault && (
-                          <button
-                            onClick={() => showToast('تم تعيين كعنوان افتراضي', 'success')}
-                            className="text-[#9E866C] font-semibold hover:underline cursor-pointer"
-                          >
-                            تعيين كافتراضي
-                          </button>
-                        )}
-                      </div>
+                {addresses.length === 0 ? (
+                  <div className="p-12 text-center bg-white rounded-3xl border border-stone-200/80 shadow-xs space-y-4">
+                    <div className="w-16 h-16 rounded-full bg-stone-100 text-stone-400 mx-auto flex items-center justify-center">
+                      <MapPin className="w-8 h-8" />
                     </div>
-                  ))}
-                </div>
+                    <div className="space-y-1">
+                      <h3 className="text-base font-bold text-stone-900">لا توجد عناوين توصيل مسجلة</h3>
+                      <p className="text-xs text-stone-500">
+                        أضف عنوان منزلك أو مقر عملك لتسهيل عملية الشحن وتوصيل طلباتك
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleOpenAddAddress}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-stone-900 text-white text-xs font-bold rounded-xl hover:bg-[#9E866C] transition-colors cursor-pointer"
+                    >
+                      <Plus size={15} />
+                      <span>إضافة عنوانك الأول</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {addresses.map((addr) => (
+                      <div
+                        key={addr.id}
+                        className={`p-5 rounded-3xl bg-white border transition-all flex flex-col justify-between ${addr.isDefault
+                            ? 'border-[#9E866C] ring-2 ring-[#9E866C]/20 shadow-sm'
+                            : 'border-stone-200/80 hover:border-stone-300 shadow-xs'
+                          }`}
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-bold text-stone-900 flex items-center gap-1.5">
+                              <MapPin size={15} className="text-[#9E866C]" />
+                              {addr.title}
+                            </span>
+                            {addr.isDefault ? (
+                              <span className="text-[10px] bg-[#9E866C]/15 text-[#735A42] px-2.5 py-0.5 rounded-full font-bold">
+                                العنوان الافتراضي
+                              </span>
+                            ) : null}
+                          </div>
+
+                          <div className="text-xs text-stone-600 space-y-1.5 bg-stone-50/70 p-3 rounded-2xl border border-stone-100">
+                            <p className="font-bold text-stone-800">{addr.fullName}</p>
+                            <p className="text-stone-500 font-mono text-[11px]" dir="ltr" style={{ textAlign: 'right' }}>
+                              {addr.phone}
+                            </p>
+                            <p className="text-stone-700">
+                              <span className="font-semibold">{addr.city}</span>
+                              {addr.district ? `، ${addr.district}` : ''}
+                            </p>
+                            <p className="text-stone-600 truncate">
+                              {addr.street}
+                              {addr.building ? `، ${addr.building}` : ''}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="pt-4 mt-4 border-t border-stone-100 flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleOpenEditAddress(addr)}
+                              className="inline-flex items-center gap-1 text-stone-600 hover:text-stone-950 font-semibold cursor-pointer transition-colors"
+                            >
+                              <Edit3 size={13} />
+                              <span>تعديل</span>
+                            </button>
+                            <span className="text-stone-300">|</span>
+                            <button
+                              onClick={() => handleDeleteAddress(addr.id)}
+                              className="inline-flex items-center gap-1 text-rose-500 hover:text-rose-700 font-semibold cursor-pointer transition-colors"
+                            >
+                              <Trash2 size={13} />
+                              <span>حذف</span>
+                            </button>
+                          </div>
+
+                          {!addr.isDefault && (
+                            <button
+                              onClick={() => handleSetDefaultAddress(addr.id)}
+                              className="text-[#9E866C] hover:text-[#7d654f] font-bold text-[11px] underline cursor-pointer transition-colors"
+                            >
+                              تعيين كافتراضي
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add / Edit Address Modal Popup */}
+                <AnimatePresence>
+                  {isAddressModalOpen && (
+                    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+                      {/* Backdrop */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsAddressModalOpen(false)}
+                        className="fixed inset-0 bg-stone-950/60 backdrop-blur-xs"
+                      />
+
+                      {/* Modal Content */}
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        className="relative bg-white  max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-stone-200/80 z-10 space-y-6 max-h-[90vh] overflow-y-auto custom-scrollbar"
+                      >
+                        <div className="flex items-center justify-between pb-3 border-b border-stone-100">
+                          <div>
+                            <h3 className="text-lg font-bold text-stone-900">
+                              {editingAddressId ? 'تعديل عنوان التوصيل' : 'إضافة عنوان توصيل جديد'}
+                            </h3>
+                            <p className="text-xs text-stone-500 mt-0.5">
+                              {editingAddressId ? 'حدّث بيانات موقع التوصيل' : 'املأ بيانات العنوان لتسهيل وصول الشحنة إليك'}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => setIsAddressModalOpen(false)}
+                            className="p-1.5 rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-800 transition-colors cursor-pointer"
+                          >
+                            <X size={20} />
+                          </button>
+                        </div>
+
+                        <form onSubmit={handleSaveAddress} className="space-y-4 text-xs">
+                          <div>
+                            <label className="block font-bold text-stone-800 mb-1.5">
+                              تسمية العنوان <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              placeholder="مثال: المنزل، مقر العمل، الشقة..."
+                              value={addressForm.title}
+                              onChange={(e) => setAddressForm({ ...addressForm, title: e.target.value })}
+                              className="w-full bg-stone-50 p-3 rounded-xl border border-stone-300 text-stone-900 focus:bg-white focus:outline-none focus:border-[#9E866C]"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block font-bold text-stone-800 mb-1.5">
+                                اسم المستلم <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="الاسم الكامل"
+                                value={addressForm.fullName}
+                                onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
+                                className="w-full bg-stone-50 p-3 rounded-xl border border-stone-300 text-stone-900 focus:bg-white focus:outline-none focus:border-[#9E866C]"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block font-bold text-stone-800 mb-1.5">
+                                رقم الهاتف <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="tel"
+                                required
+                                placeholder="+971 50 123 4567"
+                                value={addressForm.phone}
+                                onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
+                                className="w-full bg-stone-50 p-3 rounded-xl border border-stone-300 text-stone-900 focus:bg-white focus:outline-none focus:border-[#9E866C]"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block font-bold text-stone-800 mb-1.5">
+                                الإمارة / المدينة <span className="text-red-500">*</span>
+                              </label>
+                              <select
+                                value={addressForm.city}
+                                onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
+                                className="w-full bg-stone-50 p-3 rounded-xl border border-stone-300 text-stone-900 focus:bg-white focus:outline-none focus:border-[#9E866C] cursor-pointer"
+                              >
+                                <option value="دبي">دبي</option>
+                                <option value="أبوظبي">أبوظبي</option>
+                                <option value="الشارقة">الشارقة</option>
+                                <option value="عجمان">عجمان</option>
+                                <option value="رأس الخيمة">رأس الخيمة</option>
+                                <option value="الفجيرة">الفجيرة</option>
+                                <option value="أم القيوين">أم القيوين</option>
+                                <option value="العين">العين</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block font-bold text-stone-800 mb-1.5">
+                                الحي / المنطقة
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="مثال: دبي مارينا، البرشاء..."
+                                value={addressForm.district}
+                                onChange={(e) => setAddressForm({ ...addressForm, district: e.target.value })}
+                                className="w-full bg-stone-50 p-3 rounded-xl border border-stone-300 text-stone-900 focus:bg-white focus:outline-none focus:border-[#9E866C]"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block font-bold text-stone-800 mb-1.5">
+                              الشارع / العنوان التفصيلي <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              placeholder="اسم الشارع أو المعلم القريب"
+                              value={addressForm.street}
+                              onChange={(e) => setAddressForm({ ...addressForm, street: e.target.value })}
+                              className="w-full bg-stone-50 p-3 rounded-xl border border-stone-300 text-stone-900 focus:bg-white focus:outline-none focus:border-[#9E866C]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block font-bold text-stone-800 mb-1.5">
+                              المبنى / رقم الشقة أو الفيلا
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="مثال: برج الرمال، شقة 504 أو فيلا 12"
+                              value={addressForm.building}
+                              onChange={(e) => setAddressForm({ ...addressForm, building: e.target.value })}
+                              className="w-full bg-stone-50 p-3 rounded-xl border border-stone-300 text-stone-900 focus:bg-white focus:outline-none focus:border-[#9E866C]"
+                            />
+                          </div>
+
+                          <div className="pt-2 flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="isDefaultCheckbox"
+                              checked={addressForm.isDefault}
+                              onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })}
+                              className="w-4 h-4 accent-stone-900 cursor-pointer rounded"
+                            />
+                            <label htmlFor="isDefaultCheckbox" className="text-stone-700 font-semibold cursor-pointer">
+                              تعيين كعنوان توصيل افتراضي
+                            </label>
+                          </div>
+
+                          <div className="pt-4 border-t border-stone-100 flex items-center justify-end gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setIsAddressModalOpen(false)}
+                              className="px-5 py-2.5 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 font-bold transition-colors cursor-pointer"
+                            >
+                              إلغاء
+                            </button>
+                            <button
+                              type="submit"
+                              className="px-6 py-2.5 rounded-xl bg-stone-900 hover:bg-[#9E866C] text-white font-bold transition-colors cursor-pointer shadow-xs"
+                            >
+                              {editingAddressId ? 'حفظ التعديلات' : 'إضافة العنوان'}
+                            </button>
+                          </div>
+                        </form>
+                      </motion.div>
+                    </div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             )}
 
@@ -742,7 +1208,7 @@ function AccountContent() {
 
                 <div className="pt-4 border-t border-stone-100 flex items-center justify-between">
                   <button
-                    onClick={logout}
+                    onClick={handleLogout}
                     className="text-xs text-red-600 hover:text-red-700 font-bold underline cursor-pointer"
                   >
                     تسجيل الخروج من الحساب

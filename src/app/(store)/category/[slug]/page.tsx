@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import { CATEGORIES } from '@/data/categories';
 import { getProductsByCategory } from '@/lib/products';
 import { ProductsListingView } from '@/components/products/ProductsListingView';
-import { CategoryHubView } from '@/components/category/CategoryHubView';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,7 +24,7 @@ export async function generateStaticParams() {
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const { slug } = await params;
   const resolvedSearchParams = searchParams ? await searchParams : {};
-  const { sub, view, subcategory } = resolvedSearchParams;
+  const { sub, subcategory } = resolvedSearchParams;
 
   const category = CATEGORIES.find((c) => c.slug === slug);
 
@@ -35,18 +34,6 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   // Fetch products from DB
   const categoryProducts = await getProductsByCategory(slug);
-
-  const hasHub = Boolean(category.hubItems && category.hubItems.length > 0);
-
-  // If user is accessing category root and has hub items, and hasn't requested a specific sub/view
-  if (hasHub && !sub && !subcategory && view !== 'all') {
-    return (
-      <CategoryHubView
-        category={category}
-        totalProductsCount={categoryProducts.length}
-      />
-    );
-  }
 
   // If a subcategory hub is selected
   let initialSubcategories: string[] = [];
@@ -72,7 +59,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       subcategoriesList={category.subcategories}
       initialSubcategories={initialSubcategories}
       activeHubTitle={activeHubTitle}
-      hasHub={hasHub}
+      hasHub={false}
     />
   );
 }
+

@@ -2,10 +2,12 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Product, FilterState } from '@/types/product';
 import { ProductGrid } from './ProductGrid';
 import { ProductFilters } from './ProductFilters';
-import { FilterIcon, ChevronDownIcon } from '../common/Icons';
+import { ChevronDownIcon } from '../common/Icons';
+import { SlidersHorizontal, LayoutGrid, List, ChevronRight } from 'lucide-react';
 
 interface ProductsListingViewProps {
   initialProducts: Product[];
@@ -29,6 +31,7 @@ export function ProductsListingView({
   hasHub = false
 }: ProductsListingViewProps) {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filters, setFilters] = useState<FilterState>({
     category: categorySlug,
     subcategories: initialSubcategories,
@@ -130,145 +133,68 @@ export function ProductsListingView({
     (filters.priceRange[1] < 600 ? 1 : 0);
 
   return (
-    <div className="py-8 sm:py-12">
-      <div className=" mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="py-4 bg-[#FAF9F6] min-h-screen font-sans" dir="rtl">
+      {/* 1. Top Breadcrumb Navigation */}
+      <nav className="flex items-center gap-1.5 text-xs text-stone-400 mb-5 font-medium w-[90%] mx-auto">
+        <span className="text-stone-800 font-bold">جميع المنتجات</span>
+        <span className="text-stone-300">‹</span>
+        <Link href="/products" className="hover:text-stone-700 transition-colors">
+          جميع المنتجات والتشكيلات
+        </Link>
+        <span className="text-stone-300">‹</span>
+        <Link href="/" className="hover:text-stone-700 transition-colors">
+          الرئيسية
+        </Link>
+      </nav>
 
-        {/* Breadcrumb Navigation */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-          <nav className="flex items-center gap-2 text-xs text-stone-400">
-            <Link href="/" className="hover:text-stone-700 transition-colors">
-              الرئيسية
-            </Link>
-            <span>/</span>
-            {hasHub && categorySlug ? (
-              <>
-                <Link
-                  href={`/category/${categorySlug}`}
-                  className="hover:text-stone-700 transition-colors"
-                >
-                  {title}
-                </Link>
-                {activeHubTitle && (
-                  <>
-                    <span>/</span>
-                    <span className="text-stone-800 font-semibold">{activeHubTitle}</span>
-                  </>
-                )}
-              </>
-            ) : (
-              <span className="text-stone-800 font-semibold">{title}</span>
-            )}
-          </nav>
+      {/* 2. Top Full-Width Header Banner with Background Image */}
+      <div className="relative w-full overflow-hidden min-h-[180px] sm:min-h-[220px] mb-8 flex items-center justify-center p-6 sm:p-12 shadow-lg">
+        {/* Background Image */}
+        <Image
+          src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1600&auto=format&fit=crop"
+          alt={title || 'جميع المنتجات'}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
 
-          {hasHub && categorySlug && (
-            <Link
-              href={`/category/${categorySlug}`}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#9E866C] hover:text-stone-900 bg-[#9E866C]/10 hover:bg-[#9E866C]/20 px-3.5 py-1.5 rounded-full transition-all"
-            >
-              <span>← العودة لجميع تصنيفات {title}</span>
-            </Link>
-          )}
+        {/* Dark & Gradient Overlay for readability */}
+        <div className="absolute inset-0 bg-stone-950/55 backdrop-blur-[1px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-transparent to-stone-950/40" />
+
+        {/* Centered Content */}
+        <div className="relative z-10 text-center px-4 max-w-2xl mx-auto text-white">
+          <span className="inline-block text-[11px] sm:text-xs font-bold uppercase tracking-widest text-[#D7C4B7] bg-white/10 backdrop-blur-md px-3.5 py-1 rounded-full border border-white/15 mb-3">
+            المجموعة الكاملة
+          </span>
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight mb-2">
+            {title || 'جميع المنتجات'}
+          </h1>
+          <p className="text-xs sm:text-sm text-stone-200 max-w-lg mx-auto leading-relaxed font-normal">
+            {description || 'اكتشف أحدث تشكيلات الأزياء والملابس الفاخرة المصنوعة بأعلى معايير الجودة'}
+          </p>
+          {/* Terracotta Line Indicator */}
+          <div className="w-14 h-1 bg-[#BD5B24] rounded-full mx-auto mt-4 shadow-sm" />
         </div>
+      </div>
 
-
-        {/* Subcategories quick filter pills */}
-        {subcategoriesList.length > 0 && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 scrollbar-none">
-            <button
-              onClick={() => setFilters({ ...filters, subcategories: [] })}
-              className={`px-4 py-2 rounded-full text-xs font-semibold shrink-0 transition-all ${filters.subcategories.length === 0
-                ? 'bg-stone-900 text-white shadow-xs'
-                : 'bg-white text-stone-700 border border-stone-200 hover:border-stone-300'
-                }`}
-            >
-              الكل ({initialProducts.length})
-            </button>
-            {subcategoriesList.map((sub) => {
-              const isActive = filters.subcategories.includes(sub);
-              return (
-                <button
-                  key={sub}
-                  onClick={() => {
-                    const exists = filters.subcategories.includes(sub);
-                    setFilters({
-                      ...filters,
-                      subcategories: exists
-                        ? filters.subcategories.filter((s) => s !== sub)
-                        : [sub]
-                    });
-                  }}
-                  className={`px-4 py-2 rounded-full text-xs font-semibold shrink-0 transition-all ${isActive
-                    ? 'bg-stone-900 text-white shadow-xs'
-                    : 'bg-white text-stone-700 border border-stone-200 hover:border-stone-300'
-                    }`}
-                >
-                  {sub}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Control Bar: Total Count, Mobile Filter trigger, Sort Selector */}
-        <div className="flex items-center justify-between gap-4 p-4 mb-6 bg-white rounded-2xl border border-stone-200/80 shadow-xs">
-          <div className="text-xs sm:text-sm text-stone-600 font-medium">
-            عرض <strong className="text-stone-950 font-bold">{filteredProducts.length}</strong> منتج
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Mobile Filter Button */}
-            <button
-              onClick={() => setIsMobileFiltersOpen(true)}
-              className="lg:hidden flex items-center gap-2 px-3.5 py-2 rounded-xl bg-stone-100 text-stone-800 text-xs font-bold hover:bg-stone-200 transition-colors relative"
-            >
-              <FilterIcon size={16} />
-              <span>تصفية</span>
-              {activeFiltersCount > 0 && (
-                <span className="w-4 h-4 rounded-full bg-[#9E866C] text-white text-[10px] flex items-center justify-center">
-                  {activeFiltersCount}
-                </span>
-              )}
-            </button>
-
-            {/* Sort Dropdown */}
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-stone-400 hidden sm:inline">ترتيب حسب:</span>
-              <div className="relative">
-                <select
-                  value={filters.sortBy}
-                  onChange={(e) =>
-                    setFilters({ ...filters, sortBy: e.target.value as any })
-                  }
-                  className="appearance-none bg-stone-50 text-stone-900 text-xs font-semibold py-2 pr-3 pl-8 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-[#9E866C]/40 cursor-pointer"
-                >
-                  <option value="featured">المميز والمقترح</option>
-                  <option value="newest">الأحدث وصولاً</option>
-                  <option value="price-low">السعر: من الأقل للأعلى</option>
-                  <option value="price-high">السعر: من الأعلى للأقل</option>
-                  <option value="rating">الأعلى تقييماً</option>
-                </select>
-                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-stone-500">
-                  <ChevronDownIcon size={14} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content: Sidebar Filters + Products Grid */}
-        <div className="flex items-start gap-8">
+      <div className="w-[90%] mx-auto">
+        {/* 5. Main Content Area: Sidebar Filters + Products Grid */}
+        <div className="flex flex-col lg:flex-row items-start gap-3 lg:gap-8">
           <ProductFilters
             filters={filters}
             onFilterChange={setFilters}
             onReset={resetFilters}
             subcategoriesList={subcategoriesList}
             isMobileOpen={isMobileFiltersOpen}
+            onMobileOpen={() => setIsMobileFiltersOpen(true)}
             onMobileClose={() => setIsMobileFiltersOpen(false)}
             totalResultsCount={filteredProducts.length}
           />
 
-          <div className="flex-1 min-w-0">
-            <ProductGrid products={filteredProducts} columns={3} />
+          <div className="flex-1 min-w-0 w-full">
+            <ProductGrid products={filteredProducts} columns={viewMode === 'grid' ? 3 : 1} />
           </div>
         </div>
 

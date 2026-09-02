@@ -63,8 +63,7 @@ export default function HeroSlider() {
                 pagination={{
                     clickable: true,
                 }}
-                // navigation
-                className="h-full w-full"
+                className="h-full w-full hero-slider-swiper"
             >
                 {slides.map((slide) => (
                     <SwiperSlide key={slide.id}>

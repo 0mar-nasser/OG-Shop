@@ -8,14 +8,13 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { StarRating } from '../common/StarRating';
 import { Badge } from '../common/Badge';
-import { HeartIcon, EyeIcon } from '../common/Icons';
+import { HeartIcon } from '../common/Icons';
 
 interface ProductCardProps {
   product: Product;
-  onQuickView?: (product: Product) => void;
 }
 
-export function ProductCard({ product, onQuickView }: ProductCardProps) {
+export function ProductCard({ product }: ProductCardProps) {
   const { addToCart, setIsCartDrawerOpen } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [isHovered, setIsHovered] = useState(false);
@@ -28,19 +27,11 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
     toggleWishlist(product);
   };
 
-  const handleQuickViewClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onQuickView) {
-      onQuickView(product);
-    }
-  };
-
   const hasSecondaryImage = product.images.length > 1;
 
   return (
     <div
-      className="group relative flex flex-col bg-white rounded-2xl overflow-hidden border border-stone-200/70 hover:border-stone-300 hover:shadow-md transition-all duration-300"
+      className="group relative flex flex-col bg-white rounded-xl overflow-hidden border border-stone-200/70 hover:border-stone-300 hover:shadow-md transition-all duration-300"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -77,18 +68,6 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
             className={isFavorited ? 'text-red-500 scale-110' : 'text-stone-700'}
           />
         </button>
-
-        {/* Quick View Button */}
-        {onQuickView && (
-          <button
-            onClick={handleQuickViewClick}
-            className="absolute bottom-3 left-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs text-stone-700 hover:text-stone-900 hover:bg-white flex items-center justify-center shadow-xs opacity-0 group-hover:opacity-100 transition-all duration-200 z-10"
-            aria-label="نظرة سريعة"
-            title="نظرة سريعة"
-          >
-            <EyeIcon size={16} />
-          </button>
-        )}
       </div>
 
       {/* Product Details */}
@@ -154,3 +133,4 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
     </div>
   );
 }
+

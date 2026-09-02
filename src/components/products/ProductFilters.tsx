@@ -11,6 +11,7 @@ interface ProductFiltersProps {
   subcategoriesList: string[];
   isMobileOpen?: boolean;
   onMobileClose?: () => void;
+  onMobileOpen?: () => void;
   totalResultsCount: number;
 }
 
@@ -33,8 +34,18 @@ export function ProductFilters({
   subcategoriesList,
   isMobileOpen,
   onMobileClose,
+  onMobileOpen,
   totalResultsCount
 }: ProductFiltersProps) {
+  const activeFiltersCount =
+    filters.subcategories.length +
+    filters.sizes.length +
+    filters.colors.length +
+    (filters.minRating > 0 ? 1 : 0) +
+    (filters.onlyDiscount ? 1 : 0) +
+    (filters.onlyInStock ? 1 : 0) +
+    (filters.priceRange[1] < 600 ? 1 : 0);
+
   const toggleSubcategory = (sub: string) => {
     const exists = filters.subcategories.includes(sub);
     const updated = exists
@@ -67,7 +78,7 @@ export function ProductFilters({
   const Content = (
     <div className="space-y-6">
       {/* Header with Active Filters summary */}
-      <div className="flex items-center justify-between pb-4 border-b border-stone-200">
+      <div className="flex items-center justify-between pb-4 border-b border-stone-200 sticky top-0 bg-white z-10 -mt-1 pt-1">
         <div className="flex items-center gap-2">
           <FilterIcon size={18} className="text-stone-700" />
           <h3 className="text-sm font-bold text-stone-900">تصفية المنتجات</h3>
@@ -137,40 +148,12 @@ export function ProductFilters({
               <button
                 key={size}
                 onClick={() => toggleSize(size)}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                  isSelected
-                    ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
-                    : 'bg-white text-stone-700 border-stone-200 hover:border-stone-300'
-                }`}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all ${isSelected
+                  ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                  : 'bg-white text-stone-700 border-stone-200 hover:border-stone-300'
+                  }`}
               >
                 {size}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Colors */}
-      <div className="space-y-2.5 pb-5 border-b border-stone-200/70">
-        <label className="text-xs font-bold text-stone-800 block">اللون</label>
-        <div className="grid grid-cols-4 gap-2">
-          {AVAILABLE_COLORS.map((col) => {
-            const isSelected = filters.colors.includes(col.name);
-            return (
-              <button
-                key={col.name}
-                onClick={() => toggleColor(col.name)}
-                className={`flex items-center gap-1.5 p-1.5 rounded-lg text-[11px] border transition-all ${
-                  isSelected
-                    ? 'bg-stone-100 border-stone-900 font-bold text-stone-950'
-                    : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300'
-                }`}
-              >
-                <span
-                  className="w-3.5 h-3.5 rounded-full border border-stone-300 shrink-0"
-                  style={{ backgroundColor: col.hex }}
-                />
-                <span className="truncate">{col.name}</span>
               </button>
             );
           })}
@@ -247,8 +230,91 @@ export function ProductFilters({
   return (
     <>
       {/* Desktop Sidebar Filter */}
-      <div className="hidden lg:block w-64 shrink-0 bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs h-fit sticky top-24">
+      <aside className="hidden lg:block w-64 xl:w-72 shrink-0 sticky top-24 max-h-[calc(100vh-7.5rem)] overflow-y-auto bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs overscroll-contain">
         {Content}
+      </aside>
+
+      {/* Mobile Sticky Horizontal Filter Bar */}
+      <div className="block lg:hidden w-full sticky top-16 sm:top-20 z-30 bg-[#FAF9F6]/95 backdrop-blur-md py-2.5 border-y border-stone-200/70 mb-2">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 px-0.5 scroll-smooth">
+          {/* Filter Drawer Trigger Button */}
+          {onMobileOpen && (
+            <button
+              type="button"
+              onClick={onMobileOpen}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all border ${activeFiltersCount > 0
+                  ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                  : 'bg-white text-stone-800 border-stone-300 hover:border-stone-400'
+                }`}
+            >
+              <FilterIcon size={14} className={activeFiltersCount > 0 ? 'text-white' : 'text-stone-700'} />
+              <span>تصفية</span>
+              {activeFiltersCount > 0 && (
+                <span className="w-4 h-4 rounded-full bg-white text-stone-900 text-[10px] flex items-center justify-center font-bold">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </button>
+          )}
+
+          <div className="h-4 w-px bg-stone-300 shrink-0" />
+
+          {/* "الكل" (All) Category Chip */}
+          <button
+            type="button"
+            onClick={() => onFilterChange({ ...filters, subcategories: [] })}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all border ${filters.subcategories.length === 0
+                ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                : 'bg-white text-stone-700 border-stone-200 hover:border-stone-300 hover:bg-stone-50'
+              }`}
+          >
+            الكل
+          </button>
+
+          {/* Subcategories Horizontal Scrollable Chips */}
+          {subcategoriesList.map((sub) => {
+            const isSelected = filters.subcategories.includes(sub);
+            return (
+              <button
+                type="button"
+                key={sub}
+                onClick={() => toggleSubcategory(sub)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium shrink-0 transition-all border ${isSelected
+                    ? 'bg-stone-900 text-white border-stone-900 shadow-xs font-semibold'
+                    : 'bg-white text-stone-700 border-stone-200 hover:border-stone-300 hover:bg-stone-50'
+                  }`}
+              >
+                {sub}
+              </button>
+            );
+          })}
+
+          <div className="h-4 w-px bg-stone-300 shrink-0" />
+
+          {/* Quick Sale Toggle */}
+          <button
+            type="button"
+            onClick={() => onFilterChange({ ...filters, onlyDiscount: !filters.onlyDiscount })}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium shrink-0 transition-all border ${filters.onlyDiscount
+                ? 'bg-[#BD5B24] text-white border-[#BD5B24] shadow-xs font-semibold'
+                : 'bg-white text-stone-700 border-stone-200 hover:border-stone-300 hover:bg-stone-50'
+              }`}
+          >
+            <span>عروض وخصومات</span>
+            {filters.onlyDiscount && <CheckIcon size={12} />}
+          </button>
+
+          {/* Reset button if any filters active */}
+          {activeFiltersCount > 0 && (
+            <button
+              type="button"
+              onClick={onReset}
+              className="text-xs text-red-600 hover:text-red-700 underline whitespace-nowrap shrink-0 px-2 transition-colors font-medium"
+            >
+              إعادة ضبط
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Mobile Drawer Filter */}
